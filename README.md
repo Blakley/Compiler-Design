@@ -1,5 +1,5 @@
-# Programming-Language
-Let's create a programming language.
+# Compiler Design
+Lets design a compiler
 
 ## Usage
 
