@@ -14,22 +14,23 @@
 // BST object
 class BST {
     private:
-        node_t* root; // pointer to the root node of the BST
-        size_t size;  // number of nodes in BST
-        
+        node_t* root;           // pointer to the root node of the BST
+        size_t size;            // number of nodes in BST
+        std::string input_file; // name of input file
+
         // inserts nodes
         void insert(node_t*& node, int value);  
         
         // creates output file
-        void output(const std::vector<std::string>& data, const std::string name);
+        void output(const std::vector<std::string>& data);
 
     public:
-        BST();   // constructor
-        ~BST();  // destructor 
+        BST(const std::string filename);   // constructor
+        ~BST();                            // destructor 
 
         void printInorder();   // prints the BST using inorder method
         void printPreorder();  // prints the BST using preorder method
         void printPostorder(); // prints the BST using postorder method
 
-        void buildTree(node_t*& root, const std::string file); // builds the tree
+        void buildTree();      // builds the tree
 };

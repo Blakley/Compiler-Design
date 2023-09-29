@@ -18,12 +18,11 @@
  *  BST constructor:
  *  Initalizes a new binary search tree
  * 
+ * @param filename  : programs input file
  * -------------------------------------
 */
-BST::BST() {
-    // initialize root and tree size
-    size = 0; 
-    root = nullptr; 
+BST::BST(std::string filename) : root(nullptr), size(0), input_file(filename) {
+    // constructor
 }
 
 
@@ -36,7 +35,21 @@ BST::BST() {
  * -------------------------------------
 */
 BST::~BST() {
-    // todo
+    std::cout << "deleting tree" << std::endl;
+
+    // delete nodes of bst
+    while (root) {
+        // delete children
+        if (root->left) 
+            delete root->left;
+        
+        if (root->right) 
+            delete root->right;
+        
+        // delete current node
+        delete root;
+        root = nullptr;
+    }
 }
 
 
@@ -61,12 +74,11 @@ void BST::insert(node_t*& node, int value) {
  *  Builds the binary search tree using
  *  the data from the input file
  * 
- * @param root  : reference to root node
- * @param file  : name of input file
- * 
  * -------------------------------------
 */
-void BST::buildTree(node_t*& root, const std::string file) {
+void BST::buildTree() {
+    std::cout << "building tree" << std::endl;
+
     /*
         The program will read the data left to right and put them into a tree, which is a binary search tree (BST). 
         The data is all strings made up of letters and digits only (you may assume only good data, +10 for validaon and error). 
@@ -89,6 +101,10 @@ void BST::buildTree(node_t*& root, const std::string file) {
  * -------------------------------------
 */
 void BST::printInorder() {
+    std::vector<std::string> result;
+
+    std::cout << "printing inorder" << std::endl;
+
     // Implement the method to print the BST in inorder traversal.
     // Outputs a file containing the output as well
 }
@@ -104,6 +120,10 @@ void BST::printInorder() {
  * -------------------------------------
 */
 void BST::printPreorder() {
+    std::vector<std::string> result;
+
+    std::cout << "printing preorder" << std::endl;
+
     // Implement the method to print the BST in preorder traversal.
     // Outputs a file containing the output as well
 
@@ -126,6 +146,10 @@ void BST::printPreorder() {
  * -------------------------------------
 */
 void BST::printPostorder() {
+    std::vector<std::string> result;
+
+    std::cout << "printing postorder" << std::endl;
+
     // Implement the method to print the BST in postorder traversal.
     // Outputs a file containing the output as well
 }
@@ -138,12 +162,11 @@ void BST::printPostorder() {
  *  Writes the bst to an output file
  *  
  *  @param data : a vector of strings containing tree data
- *  @param name : the name of the output file to be created
  * -------------------------------------
 */
-void BST::output(const std::vector<std::string>& data, const std::string name) {
+void BST::output(const std::vector<std::string>& data) {
     // create the output file
-    std::ofstream new_file(name);
+    std::ofstream new_file(input_file);
 
     // check if file opens
     if (new_file.is_open()) {
@@ -157,17 +180,17 @@ void BST::output(const std::vector<std::string>& data, const std::string name) {
     }
     else {
         // error opening file
-        std::cerr << "Error: unable to create output file: " << name << std::endl;
+        std::cerr << "Error: unable to create output file: " << input_file << std::endl;
     }
 
     /*
     Output:
-        If the file name is given, then the output file name should be of the form:
+        If the file name is given (if name != "tempfile"), then the output file name should be of the form:
             file_name.preorder 
             file_name.postorder 
             file_name.inorder
 
-        If the file name is not given, then the output file name should be of the form:
+        If the file name is not given (if name == "tempfile"), then the output file name should be of the form:
             out.preorder 
             out.postorder 
             out.inorder
