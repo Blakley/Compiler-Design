@@ -2,14 +2,14 @@
     Name: Anthony Blakley
     Date: 09/28/2023
     Description:
+        Header, contains the definition for a node structure
         
 */
 
-// node.h
 # pragma once
 # include <string>
 
-//
+// node structure
 struct node_t {
     std::string data;
     node_t* left;

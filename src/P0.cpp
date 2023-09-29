@@ -2,23 +2,25 @@
     Name: Anthony Blakley
     Date: 09/28/2023
     Description:
-         Program to practice with trees, traversals, command line arguments, and file IO.
+         Program to practice with trees, traversals, 
+         command line arguments, and file IO.
 */
 
 // Imports
 # include "node.h"
 # include "tree.h"
 
-using namespace std;
 
 /**
  * -------------------------------------
  * 
+ *  Setups up the binary search tree,
+ *  and prints the traveral results
  * 
- * 
+ *  @param file : name of input file
  * -------------------------------------
 */
-static void manager(const char* file) {
+static void manager(std::string file) {
     // assign root node
     node_t* root = nullptr;
 
@@ -37,41 +39,59 @@ static void manager(const char* file) {
 /**
  * -------------------------------------
  * 
+ * Parses command line arguments and 
+ * checks the validity of the input data
  * 
- * 
+ * @param argc  : argument count
+ * @param argv  : argument array
  * -------------------------------------
 */
-static char* arguments(int argc, char** argv) {
+static void arguments(int argc, char** argv) {
+
+/*
+    Function: TODO
+
+
+    1. Process command line arguments:
+        * If no arguments are provided, the program should read data from the keyboard until EOF (End of File).
+        * If a single argument is provided, the program should treat it as the input file name. 
+          The program should check if the file exists and is readable. 
+          If the file is readable, the program should process data from the file.
+
+    2. Handling keyboard input:
+        * If the program is reading from the keyboard (stdin), it should temporarily store the input into a temporary file. 
+          This is necessary because the program should always process data from a file pointer, even if it's reading from the keyboard. 
+          The temporary file allows you to unify the processing logic.
+
+    3. Handling file input:
+        * If a valid input file is provided as a command line argument, 
+          the program should append the required extension (".f23") to the filename and open it for reading.
+
+    4. Error handling:
+        *If the command line arguments are incorrect or the specified input file is not readable for any reason, 
+         the program should abort with an appropriate error message.
     
-   /*
-                                            Todo:
-                                                
-       Process command arguments, set up data to work regardless of source, check if file readable, set the basename for the output file, etc. 
+    5. Once the data source (file or temporary file) is set up correctly based on the command line arguments, 
+    the function should call the manager function to proceed with building and processing the binary search tree.
 
-        - Processing keyboard or file input: [PO is executable name]
-             1. 
-                If keyboard input ("P0" or "P0 < file", the program doesnt know which but the file there was no argument), 
-                read the input into a temporary file, close and reopen to read Otherwise you have the file, just append the 
-                extension and open it to read Afterwards the rest of the program always processes file input 
-                
-             2. 
-                 If keyboard input, set file pointer to stdin otherwise set file pointer to the actual file 
-                 (after adding extension and opening), then process always from the file pointer
+    ---------------
+     invocation
+    --------------
+    1.
+        P0: When no arguments are provided, the program reads data from the keyboard until it encounters simulated EOF (End of File).
+    
+    2. 
+        P0 < somefile: When the program is invoked with < somefile, it indicates that the program should 
+        read input data from the file named "somefile" (without the need for explicit argument). 
+        This input redirection is performed by the shell, and the entire filename must 
+        include the file extension (e.g., "somefile.f23").
 
+    3. 
+        P0 somefile: When a single argument is provided (e.g., "somefile"), the program treats it as the name of the input file. 
+        The program appends the required extension (".f23") to the filename and opens it for reading. 
+        This allows you to specify the input file explicitly.
+*/
 
-            // process command line arguments first and error if improper arguments 
-            // if filename given, make sure file is readable, error otherwise 
-            // set file pointers or read to temporary file so that below this point there is only one v ersion of the code
-
-
-            Assume you do not know the size of the input file. Assume the input data is all strings (printable ASCII) separated with standard WS separators 
-            (space, tab, new line). If the input 
-            file is not readable for whatever reason, or command line arguments are not correct, the program must abort with an appropriate message
-
-   */
-
-
-    // manager(file);
 }
 
 
@@ -79,11 +99,4 @@ static char* arguments(int argc, char** argv) {
 int main(int argc, char** argv) {
     arguments(argc, argv);
     return 0;
-}
-
-/*
-                        TODO:
-- Output:
-    The program will subsequently output 3 files corresponding to 3 traversals, named file.preorder, file.inorder and file.postorder. 
-    Note that file is the base name of the input file if given, and it is out.preorder, etc. if that is not not given.
-*/
+}   
