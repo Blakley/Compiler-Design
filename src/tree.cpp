@@ -16,13 +16,15 @@
  * -------------------------------------
  * 
  *  BST constructor:
- *  Initalizes a new binary search tree
+ *  Initalizes a new binary search tree,
+ *  calls data validation function
  * 
  * @param filename  : programs input file
  * -------------------------------------
 */
 BST::BST(std::string filename) : root(nullptr), size(0), input_file(filename) {
-    // constructor
+    // validate input data
+    validator();
 }
 
 
@@ -50,6 +52,40 @@ BST::~BST() {
         delete root;
         root = nullptr;
     }
+}
+
+
+/**
+ * -------------------------------------
+ * 
+ *  Validates input file data:
+ *  Data should be all strings (printable ASCII)
+ *  separated with standard WS separators (space, tab, new line)
+ *  The strings should contain letters and digits only
+ * 
+ * -------------------------------------
+*/
+void BST::validator() {
+
+    std::cout << "validating input data" << std::endl;
+
+    // to check: save file contents to array, iterate array and check
+    // all characters to ensure all data in file is valid (error if failed)
+    
+    // valid example:
+    /*
+        4aaa susan adam 4aaa
+        susan an ann anna
+        george x abs ha hahah
+    */
+
+    // invalid example:
+    /*
+        x <- c(“Ekstr\u00f8m”, “J\u00f6reskog”, 
+        “bi\u00dfchen Z\u00fcrcher”)x#> [1] 
+        “Ekstrøm” “Jöreskog”
+        bißchen Zürcher
+    */
 }
 
 
@@ -159,7 +195,6 @@ void BST::printPostorder() {
     // create output file
     output(result, "postorder");
 }
-
 
 
 /**

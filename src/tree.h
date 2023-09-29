@@ -33,4 +33,5 @@ class BST {
         void printPostorder(); // prints the BST using postorder method
 
         void buildTree();      // builds the tree
+        void validator();      // validates input file data
 };
