@@ -94,9 +94,8 @@ void BST::buildTree() {
 /**
  * -------------------------------------
  * 
- *  Prints the Binary Search Tree in 
- *  inorder traversal, outputs the result 
- *  to the console and a file
+ *  Prints the Binary Search Tree in inorder traversal,
+ *  calls the outputs function to save it to a file
  * 
  * -------------------------------------
 */
@@ -107,15 +106,17 @@ void BST::printInorder() {
 
     // Implement the method to print the BST in inorder traversal.
     // Outputs a file containing the output as well
+
+    // create output file
+    output(result, "inorder");
 }
 
 
 /**
  * -------------------------------------
  * 
- *  Prints the Binary Search Tree in 
- *  preorder traversal, outputs the result 
- *  to the console and a file
+ *  Prints the Binary Search Tree in preorder traversal,
+ *  calls the outputs function to save it to a file
  * 
  * -------------------------------------
 */
@@ -133,15 +134,17 @@ void BST::printPreorder() {
         a node will print starting with indentaon of 2x depth (root is at depth 0) then the node's length (length of the strings) 
         followed by character ':' and space followed by the list of numbers from the node set separated by spaces (a set, no repetitions and no specific order)    
     */
+
+    // create output file
+    output(result, "preorder");
 }
 
 
 /**
  * -------------------------------------
  * 
- *  Prints the Binary Search Tree in 
- *  postorder traversal, outputs the result 
- *  to the console and a file
+ *  Prints the Binary Search Tree in postorder traversal, 
+ *  calls the outputs function to save it to a file
  * 
  * -------------------------------------
 */
@@ -152,6 +155,9 @@ void BST::printPostorder() {
 
     // Implement the method to print the BST in postorder traversal.
     // Outputs a file containing the output as well
+
+    // create output file
+    output(result, "postorder");
 }
 
 
@@ -159,40 +165,49 @@ void BST::printPostorder() {
 /**
  * -------------------------------------
  * 
- *  Writes the bst to an output file
+ *  Writes the bst traversed elements
+ *  to an output file
  *  
- *  @param data : a vector of strings containing tree data
+ *  @param data      : a vector of strings containing tree data
+ *  @param traversal : traversal method for output file
  * -------------------------------------
 */
-void BST::output(const std::vector<std::string>& data) {
-    // create the output file
-    std::ofstream new_file(input_file);
+void BST::output(const std::vector<std::string>& data, std::string traversal) {
+    // output file name
+    std::string output = "";
+    std::string error_file = "[Error], Unable to create output file";
 
-    // check if file opens
-    if (new_file.is_open()) {
-        // write tree data to file
-        for (auto s: data) {
-            new_file << s << std::endl;
-        }
-        
-        // close file
-        new_file.close();
+    // determine file name
+    if (input_file != "tempfile") {
+        // extract base name of file
+        if (input_file.size() >= 4 && input_file.substr(input_file.size() - 4) == ".f23")
+            output = input_file.substr(0, input_file.size() - 4); 
+        else 
+            output = input_file;
+
+        output += "." + traversal;
     }
     else {
-        // error opening file
-        std::cerr << "Error: unable to create output file: " << input_file << std::endl;
+        // use:  out."traversal" file name
+        output = "out." + traversal;
     }
 
-    /*
-    Output:
-        If the file name is given (if name != "tempfile"), then the output file name should be of the form:
-            file_name.preorder 
-            file_name.postorder 
-            file_name.inorder
+    std::cout << "Creating output file: " << output << std::endl;
 
-        If the file name is not given (if name == "tempfile"), then the output file name should be of the form:
-            out.preorder 
-            out.postorder 
-            out.inorder
-    */
+    // create file
+    std::fstream output_file(output, std::ios::out);
+
+        // error opening created file
+    if (!output_file.is_open()) { 
+        std::cerr << error_file << output << std::endl;
+        exit(EXIT_FAILURE);
+    }    
+
+    // write tree data to file
+    for (auto s: data) {
+        output_file << s << std::endl;
+    }
+
+    // close file
+    output_file.close();
 }

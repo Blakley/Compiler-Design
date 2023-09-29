@@ -22,7 +22,7 @@ class BST {
         void insert(node_t*& node, int value);  
         
         // creates output file
-        void output(const std::vector<std::string>& data);
+        void output(const std::vector<std::string>& data, std::string traversal);
 
     public:
         BST(const std::string filename);   // constructor
