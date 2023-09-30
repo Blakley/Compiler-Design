@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 09/29/2023
+    Date: 09/30/2023
     Description:
         Sets up functions for creating, displaying,
         and outputting the binary search tree
@@ -8,6 +8,8 @@
 
 // Imports
 # include "tree.h"
+# include <map>
+# include <stack>
 # include <fstream>
 # include <sstream>
 # include <iostream>
@@ -38,8 +40,6 @@ BST::BST(std::string filename) : root(nullptr), size(0), filename(filename) {
  * -------------------------------------
 */
 BST::~BST() {
-    std::cout << "deleting tree" << std::endl;
-
     // delete nodes of bst
     while (root) {
         // delete children
@@ -66,8 +66,6 @@ BST::~BST() {
  * -------------------------------------
 */
 void BST::validator() {
-
-    std::cout << "validating input data" << std::endl;
 
     // create error messages
     std::string error_line = "[Error], Input file (line ";
@@ -135,8 +133,6 @@ void BST::validator() {
  * -------------------------------------
 */
 void BST::insert(node_t*& node, std::string value) {
-    std::cout << "insert a value into tree" << std::endl;
-
     // check current node
     if (node == nullptr) {
         // create a new node
@@ -150,12 +146,12 @@ void BST::insert(node_t*& node, std::string value) {
         int length = value.length();
         int node_length = node->data.begin()->length();
 
-        if (length == node_length) 
+        if (length == node_length)
             node->data.insert(value);   // add value to current node
         else if (length < node_length)
             insert(node->left, value);  // traverse left subtree
         else
-            insert(node->right, value); // traverse right subtree
+            insert(node->right, value); // traverse right subtree   
     }
 }
 
@@ -169,7 +165,6 @@ void BST::insert(node_t*& node, std::string value) {
  * -------------------------------------
 */
 void BST::buildTree() {
-    std::cout << "building tree" << std::endl;
 
     // Open the input file
     std::ifstream input_file(filename);
@@ -183,30 +178,87 @@ void BST::buildTree() {
     // file content variables
     std::string line;
 
-    // create nodes from file content
+    // vector to store unique-length words & and all words
+    std::vector<std::string> unique_length_words;
+    std::vector<std::string> other_words;
+
+     // 1.) add initial strings to array
     while (std::getline(input_file, line)) {
 
         // extract words from each line
         std::istringstream lines(line);
         std::string word;
 
-        // process each word
+        // read words from input file
         while (lines >> word) {
-            // check if word is root
-            if (root == nullptr) {
-                // set root node
-                root = new node_t;
-                root->data.insert(word);
-                root->left = nullptr;
-                root->right = nullptr;
+    
+            // check if the length of the word is unique in the vector
+            int length = word.length();
+            bool is_unique = true;
+            for (const std::string& unique_word : unique_length_words) {
+                if ((int)unique_word.length() == length) {
+                    is_unique = false;
+                    break;
+                }
             }
+
+            // add unique-length words to first vector, and duplicate-length to second vector.
+            if (is_unique) 
+                unique_length_words.push_back(word);
             else
-                insert(root, word);
+                other_words.push_back(word); 
         }
     }
 
+    // 2.) create initial nodes from unique_length_words
+    for (const std::string& word : unique_length_words)
+        insert(root, word);
+
+    // 3.) add remaining words, from other_words, to the created nodes
+    for (const std::string& word : other_words)
+        insert(root, word);
+
     // close file
     input_file.close();
+}
+
+
+/**
+ * -------------------------------------
+ * 
+ *  Displays the binary search tree
+ *  with the node levels
+ * -------------------------------------
+*/
+void BST::printTree(node_t* node, int level) {
+    if (node == nullptr) {
+        return;
+    }
+
+    // Process the data in the current node along with its level
+    for (const std::string& value : node->data) {
+        std::cout << "Level " << level << ": " << value << ' ';
+    }
+    std::cout << std::endl;
+
+    // Recursively print the left and right subtrees with increased indentation and level
+    printTree(node->left, level + 1);
+    printTree(node->right, level + 1);
+}
+
+
+/**
+ * -------------------------------------
+ * 
+ *  Wrapper function for displaying
+ *  the binary search tree
+ * 
+ * -------------------------------------
+*/
+void BST::printTree() {
+    std::cout << "Printing the Binary Search Tree:" << std::endl;
+    printTree(root, 0);
+    std::cout << std::endl;
 }
 
 
@@ -219,18 +271,64 @@ void BST::buildTree() {
  * -------------------------------------
 */
 void BST::printPreorder() {
-    std::vector<std::string> result;
+    printPreorder(root, 0);
 
-    std::cout << "printing preorder" << std::endl;
+    printf("\nPreorder: \n");
+    for (std::string line : printer)
+        std::cout << line << std::endl;
 
-    // Implement the method to print the BST in preorder traversal.
-    // Outputs a file containing the output as well
-
-    // create output file
-    output(result, "preorder");
+    // output("preorder");
 }
 
 
+/**
+ * -------------------------------------
+ *  Preorder print helper function
+ * -------------------------------------
+*/
+void BST::printPreorder(node_t* node, int level) {
+    if (node == nullptr)
+        return;
+
+    // map to group strings by length
+    std::map<int, std::vector<std::string>> grouped_data;
+
+    // iterate through the node's data and group by string length
+    for (const std::string& value : node->data)
+        grouped_data[value.length()].push_back(value);
+
+    // print grouped node data
+    for (const auto& entry : grouped_data) {
+        const int length = entry.first;
+        const std::vector<std::string>& strings = entry.second;
+
+        // calculate asterisk amount
+        int asterisk = 0;
+        asterisk = level * 2;
+
+        // add asterisk formmating
+        std::string chars = "";
+        for (int i=0; i<asterisk; i++)
+            chars += "*";
+
+        // add additional formatting and node values
+        std::string output_line = "";
+        std::string str_length = std::to_string(length);
+        output_line += chars + str_length + ": ";
+
+        for (size_t i = 0; i < strings.size(); ++i) {
+            output_line += strings[i];
+            if (i < strings.size() - 1)
+                output_line += " ";
+        }
+
+        printer.push_back(output_line);
+    }
+
+    // recursively print the left and right subtrees with increased level
+    printPreorder(node->left, level + 1);
+    printPreorder(node->right, level + 1);
+}
 
 
 /**
@@ -242,16 +340,15 @@ void BST::printPreorder() {
  * -------------------------------------
 */
 void BST::printInorder() {
-    std::vector<std::string> result;
 
-    std::cout << "printing inorder" << std::endl;
-
-    // Implement the method to print the BST in inorder traversal.
-    // Outputs a file containing the output as well
-
-    // create output file
-    output(result, "inorder");
 }
+
+
+
+
+
+
+
 
 
 /**
@@ -263,7 +360,7 @@ void BST::printInorder() {
  * -------------------------------------
 */
 void BST::printPostorder() {
-    std::vector<std::string> result;
+    // std::vector<std::string> result;
 
     std::cout << "printing postorder" << std::endl;
 
@@ -271,7 +368,7 @@ void BST::printPostorder() {
     // Outputs a file containing the output as well
 
     // create output file
-    output(result, "postorder");
+    // output(result, "postorder");
 }
 
 
@@ -285,17 +382,7 @@ void BST::printPostorder() {
  *  @param traversal : traversal method for output file
  * -------------------------------------
 */
-void BST::output(const std::vector<std::string>& data, std::string traversal) {
-   
-   
-    /*
-        printing format:
-        a node will print starting with indentaon of 2x depth (root is at depth 0) then the node's length (length of the strings) 
-        followed by character ':' and space followed by the list of numbers from the node set separated by spaces (a set, no repetitions and no specific order)    
-    */
-
-   
-   
+void BST::output(std::string traversal) {
     // output file name
     std::string output = "";
     std::string error_file = "[Error], Unable to create output file";
@@ -326,8 +413,8 @@ void BST::output(const std::vector<std::string>& data, std::string traversal) {
         exit(EXIT_FAILURE);
     }    
 
-    // write tree data to file
-    for (auto s: data) {
+    // write tree printer data to file
+    for (auto s: printer) {
         output_file << s << std::endl;
     }
 

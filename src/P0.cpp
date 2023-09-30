@@ -24,17 +24,14 @@
 */
 static void manager(std::string file) {
     
-    std::cout << "Manager: filename: " << file << std::endl;
-    
     // create & build tree
     BST tree(file);
     tree.buildTree();
 
     // print tree traverals
-    tree.printInorder();
-    tree.printInorder(); 
+    // tree.printInorder(); 
     tree.printPreorder(); 
-    tree.printPostorder();
+    // tree.printPostorder();
 }
 
 /**
