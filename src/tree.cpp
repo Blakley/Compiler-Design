@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 09/28/2023
+    Date: 09/29/2023
     Description:
         Sets up functions for creating, displaying,
         and outputting the binary search tree
@@ -8,8 +8,9 @@
 
 // Imports
 # include "tree.h"
-# include <iostream>
 # include <fstream>
+# include <sstream>
+# include <iostream>
 
 
 /**
@@ -22,7 +23,7 @@
  * @param filename  : programs input file
  * -------------------------------------
 */
-BST::BST(std::string filename) : root(nullptr), size(0), input_file(filename) {
+BST::BST(std::string filename) : root(nullptr), size(0), filename(filename) {
     // validate input data
     validator();
 }
@@ -59,9 +60,8 @@ BST::~BST() {
  * -------------------------------------
  * 
  *  Validates input file data:
- *  Data should be all strings (printable ASCII)
- *  separated with standard WS separators (space, tab, new line)
- *  The strings should contain letters and digits only
+ *  The strings should contain letters, digits, 
+ *  and WS seperators only
  * 
  * -------------------------------------
 */
@@ -69,38 +69,94 @@ void BST::validator() {
 
     std::cout << "validating input data" << std::endl;
 
-    // to check: save file contents to array, iterate array and check
-    // all characters to ensure all data in file is valid (error if failed)
-    
-    // valid example:
-    /*
-        4aaa susan adam 4aaa
-        susan an ann anna
-        george x abs ha hahah
-    */
+    // create error messages
+    std::string error_line = "[Error], Input file (line ";
+    std::string error_empty = "[Error], Input file is empty: ";
+    std::string error_file = "[Error], Unable to open input file: ";
 
-    // invalid example:
-    /*
-        x <- c(“Ekstr\u00f8m”, “J\u00f6reskog”, 
-        “bi\u00dfchen Z\u00fcrcher”)x#> [1] 
-        “Ekstrøm” “Jöreskog”
-        bißchen Zürcher
-    */
+    // open file
+    std::ifstream input_file(filename, std::ios::in);
+    
+    // check if there is an error with the file
+    if (!input_file.is_open()) {
+        std::cerr << error_file << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // check if the file is empty
+    if (input_file >> std::ws && input_file.eof()) {
+        std::cerr << "Error: Input file is empty." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // file content variables
+    std::string line;
+    int index = 0;
+
+    // check file contents
+    while (std::getline(input_file, line)) {
+        ++index;
+
+        // split the line into words
+        std::istringstream lines(line);
+        std::string word;
+
+        // check that each string contains only letters, digits, and spaces
+        while (lines >> word) {
+            
+            bool valid = true; 
+            for (char c : word) {
+                if (!std::isalnum(c) && !std::isspace(c)) {
+                    valid = false; 
+                    break;
+                }
+            }
+
+            // file contains invalid characters
+            if (!valid) {
+                std::cerr << error_line << index << "): Invalid string - " << word 
+                        << " (contains unsupported characters)" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    input_file.close();
 }
 
 
 /**
  * -------------------------------------
  * 
- * Inserts a new node with a given value
- * into the tree
+ * Inserts nodes into the tree with a given value
  * 
- * @param node  : reference to new node
- * @param value : node value
+ * @param node   : reference to new node
+ * @param value  : node value
  * -------------------------------------
 */
-void BST::insert(node_t*& node, int value) {
-    // Implement the insertion logic here.
+void BST::insert(node_t*& node, std::string value) {
+    std::cout << "insert a value into tree" << std::endl;
+
+    // check current node
+    if (node == nullptr) {
+        // create a new node
+        node = new node_t;
+        node->data.insert(value);
+        node->left = nullptr;
+        node->right = nullptr;
+    }
+    else {
+        // traverse left or right based on string length
+        int length = value.length();
+        int node_length = node->data.begin()->length();
+
+        if (length == node_length) 
+            node->data.insert(value);   // add value to current node
+        else if (length < node_length)
+            insert(node->left, value);  // traverse left subtree
+        else
+            insert(node->right, value); // traverse right subtree
+    }
 }
 
 
@@ -115,16 +171,66 @@ void BST::insert(node_t*& node, int value) {
 void BST::buildTree() {
     std::cout << "building tree" << std::endl;
 
-    /*
-        The program will read the data left to right and put them into a tree, which is a binary search tree (BST). 
-        The data is all strings made up of letters and digits only (you may assume only good data, +10 for validaon and error). 
-        The BST is constructed with respect length of a string - strings of the same length fall into the same node, those shorter end up in the left subtree, etc. 
-        Tree is never balanced nor restructured other than growing new nodes as needed. 
-        A node should know the digit it collects the number for, and all the numbers falling into the node except that duplicates are not retained.
-    */
+    // Open the input file
+    std::ifstream input_file(filename);
+    
+    // Check if there is an error with the file
+    if (!input_file.is_open()) {
+        std::cerr << "[Error] Unable to open input file: " << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
-    // call isnert method for inserting new nodes.
+    // file content variables
+    std::string line;
+
+    // create nodes from file content
+    while (std::getline(input_file, line)) {
+
+        // extract words from each line
+        std::istringstream lines(line);
+        std::string word;
+
+        // process each word
+        while (lines >> word) {
+            // check if word is root
+            if (root == nullptr) {
+                // set root node
+                root = new node_t;
+                root->data.insert(word);
+                root->left = nullptr;
+                root->right = nullptr;
+            }
+            else
+                insert(root, word);
+        }
+    }
+
+    // close file
+    input_file.close();
 }
+
+
+/**
+ * -------------------------------------
+ * 
+ *  Prints the Binary Search Tree in preorder traversal,
+ *  calls the outputs function to save it to a file
+ * 
+ * -------------------------------------
+*/
+void BST::printPreorder() {
+    std::vector<std::string> result;
+
+    std::cout << "printing preorder" << std::endl;
+
+    // Implement the method to print the BST in preorder traversal.
+    // Outputs a file containing the output as well
+
+    // create output file
+    output(result, "preorder");
+}
+
+
 
 
 /**
@@ -145,34 +251,6 @@ void BST::printInorder() {
 
     // create output file
     output(result, "inorder");
-}
-
-
-/**
- * -------------------------------------
- * 
- *  Prints the Binary Search Tree in preorder traversal,
- *  calls the outputs function to save it to a file
- * 
- * -------------------------------------
-*/
-void BST::printPreorder() {
-    std::vector<std::string> result;
-
-    std::cout << "printing preorder" << std::endl;
-
-    // Implement the method to print the BST in preorder traversal.
-    // Outputs a file containing the output as well
-
-
-    /*
-        printing format:
-        a node will print starting with indentaon of 2x depth (root is at depth 0) then the node's length (length of the strings) 
-        followed by character ':' and space followed by the list of numbers from the node set separated by spaces (a set, no repetitions and no specific order)    
-    */
-
-    // create output file
-    output(result, "preorder");
 }
 
 
@@ -208,17 +286,27 @@ void BST::printPostorder() {
  * -------------------------------------
 */
 void BST::output(const std::vector<std::string>& data, std::string traversal) {
+   
+   
+    /*
+        printing format:
+        a node will print starting with indentaon of 2x depth (root is at depth 0) then the node's length (length of the strings) 
+        followed by character ':' and space followed by the list of numbers from the node set separated by spaces (a set, no repetitions and no specific order)    
+    */
+
+   
+   
     // output file name
     std::string output = "";
     std::string error_file = "[Error], Unable to create output file";
 
     // determine file name
-    if (input_file != "tempfile") {
+    if (filename != "tempfile") {
         // extract base name of file
-        if (input_file.size() >= 4 && input_file.substr(input_file.size() - 4) == ".f23")
-            output = input_file.substr(0, input_file.size() - 4); 
+        if (filename.size() >= 4 && filename.substr(filename.size() - 4) == ".f23")
+            output = filename.substr(0, filename.size() - 4); 
         else 
-            output = input_file;
+            output = filename;
 
         output += "." + traversal;
     }
