@@ -19,12 +19,8 @@ class BST {
         std::string filename;               // name of input file
         std::vector<std::string> printer;   // holds the content needed to print 
         
-
-        // inserts nodes
-        void insert(node_t*& node, std::string value);  
-        
-        // creates output file
-        void output(std::string traversal);
+        void insert(node_t*& node, std::string value);   // inserts nodes
+        void output(std::string traversal);              // creates output file
 
         void printTree();
         void printTree(node_t* node, int level);
@@ -35,6 +31,7 @@ class BST {
 
         // prints the BST using inorder method
         void printInorder();
+        void printInorder(node_t* node, int level);
         
         // prints the BST using preorder method
         void printPreorder();  
@@ -42,6 +39,7 @@ class BST {
 
         // prints the BST using postorder method
         void printPostorder(); 
+        void printPostorder(node_t* node, int level); 
 
         void buildTree();      // builds the tree
         void validator();      // validates input file data

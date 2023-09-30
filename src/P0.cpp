@@ -29,8 +29,8 @@ static void manager(std::string file) {
     tree.buildTree();
 
     // print tree traverals
-    // tree.printInorder(); 
-    tree.printPreorder(); 
+    tree.printInorder(); 
+    // tree.printPreorder(); 
     // tree.printPostorder();
 }
 

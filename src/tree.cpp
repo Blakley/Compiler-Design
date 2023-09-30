@@ -271,9 +271,10 @@ void BST::printTree() {
  * -------------------------------------
 */
 void BST::printPreorder() {
+    printf("\nPreorder: \n");
+    printer.clear(); 
     printPreorder(root, 0);
 
-    printf("\nPreorder: \n");
     for (std::string line : printer)
         std::cout << line << std::endl;
 
@@ -340,15 +341,66 @@ void BST::printPreorder(node_t* node, int level) {
  * -------------------------------------
 */
 void BST::printInorder() {
+    printf("\nInorder: \n");
+    printer.clear(); 
+    printInorder(root, 0);
 
+    for (std::string line : printer)
+        std::cout << line << std::endl;
+
+    // output("inorder");
 }
 
 
+/**
+ * -------------------------------------
+ *  Inorder print helper function
+ * -------------------------------------
+*/
+void BST::printInorder(node_t* node, int level) {
+    if (node == nullptr)
+        return;
 
+    // recursively print the left subtree with increased level
+    printInorder(node->left, level + 1);
 
+    // create a map to group strings by length for the current node
+    std::map<int, std::vector<std::string>> grouped_data;
 
+    // iterate through the node's data and group by string length
+    for (const std::string& value : node->data)
+        grouped_data[value.length()].push_back(value);
 
+    // print grouped node data
+    for (const auto& entry : grouped_data) {
+        const int length = entry.first;
+        const std::vector<std::string>& strings = entry.second;
 
+        // calculate asterisk amount
+        int asterisk = level * 2;
+
+        // add asterisk formatting
+        std::string chars = "";
+        for (int i = 0; i < asterisk; i++)
+            chars += "*";
+
+        // add additional formatting and node values
+        std::string output_line = "";
+        std::string str_length = std::to_string(length);
+        output_line += chars + str_length + ": ";
+
+        for (size_t i = 0; i < strings.size(); ++i) {
+            output_line += strings[i];
+            if (i < strings.size() - 1)
+                output_line += " ";
+        }
+
+        printer.push_back(output_line);
+    }
+
+    // recursively print the right subtree with increased level
+    printInorder(node->right, level + 1);
+}
 
 
 /**
@@ -360,15 +412,65 @@ void BST::printInorder() {
  * -------------------------------------
 */
 void BST::printPostorder() {
-    // std::vector<std::string> result;
+    printf("\nPostorder: \n");
+    printer.clear(); 
+    printPostorder(root, 0);
 
-    std::cout << "printing postorder" << std::endl;
+    for (std::string line : printer)
+        std::cout << line << std::endl;
 
-    // Implement the method to print the BST in postorder traversal.
-    // Outputs a file containing the output as well
+    // output("postorder");
+}
 
-    // create output file
-    // output(result, "postorder");
+
+/**
+ * -------------------------------------
+ *  Postorder print helper function
+ * -------------------------------------
+*/
+void BST::printPostorder(node_t* node, int level) {
+    if (node == nullptr)
+        return;
+
+    // recursively print the left subtree with increased level
+    printPostorder(node->left, level + 1);
+
+    // recursively print the right subtree with increased level
+    printPostorder(node->right, level + 1);
+
+    // create a map to group strings by length for the current node
+    std::map<int, std::vector<std::string>> grouped_data;
+
+    // iterate through the node's data and group by string length
+    for (const std::string& value : node->data)
+        grouped_data[value.length()].push_back(value);
+
+    // print grouped node data
+    for (const auto& entry : grouped_data) {
+        const int length = entry.first;
+        const std::vector<std::string>& strings = entry.second;
+
+        // calculate asterisk amount
+        int asterisk = level * 2;
+
+        // add asterisk formatting
+        std::string chars = "";
+        for (int i = 0; i < asterisk; i++)
+            chars += "*";
+
+        // add additional formatting and node values
+        std::string output_line = "";
+        std::string str_length = std::to_string(length);
+        output_line += chars + str_length + ": ";
+
+        for (size_t i = 0; i < strings.size(); ++i) {
+            output_line += strings[i];
+            if (i < strings.size() - 1)
+                output_line += " ";
+        }
+
+        printer.push_back(output_line);
+    }
 }
 
 
