@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 09/29/2023
+    Date: 09/30/2023
     Description:
         Header, contains the definition for the binary search tree object
 */
@@ -22,22 +22,19 @@ class BST {
         void insert(node_t*& node, std::string value);   // inserts nodes
         void output(std::string traversal);              // creates output file
 
-        void printTree();
-        void printTree(node_t* node, int level);
-
     public:
         BST(const std::string filename);   // constructor
         ~BST();                            // destructor 
 
-        // prints the BST using inorder method
+        // prints/creates the BST file using inorder method
         void printInorder();
         void printInorder(node_t* node, int level);
         
-        // prints the BST using preorder method
+        // prints/creates the BST file using preorder method
         void printPreorder();  
         void printPreorder(node_t* node, int level);
 
-        // prints the BST using postorder method
+        // prints/creates the BST file using postorder method
         void printPostorder(); 
         void printPostorder(node_t* node, int level); 
 

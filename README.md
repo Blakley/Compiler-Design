@@ -70,4 +70,3 @@ __Or, if no input file is provided__:
 * tree.h: Header file for the binary search tree.
 * node.h: Header file defining the structure of tree nodes.
 * Makefile: Makefile for compiling the program.
-* README.md: This README file.

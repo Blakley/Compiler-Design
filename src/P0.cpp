@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 09/29/2023
+    Date: 09/30/2023
     Description:
          Program to practice with trees, traversals, 
          command line arguments, and file IO.
@@ -28,11 +28,12 @@ static void manager(std::string file) {
     BST tree(file);
     tree.buildTree();
 
-    // print tree traverals
+    // create traversals print files
     tree.printInorder(); 
-    // tree.printPreorder(); 
-    // tree.printPostorder();
+    tree.printPreorder(); 
+    tree.printPostorder();
 }
+
 
 /**
  * -------------------------------------

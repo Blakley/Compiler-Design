@@ -226,65 +226,24 @@ void BST::buildTree() {
 /**
  * -------------------------------------
  * 
- *  Displays the binary search tree
- *  with the node levels
- * -------------------------------------
-*/
-void BST::printTree(node_t* node, int level) {
-    if (node == nullptr) {
-        return;
-    }
-
-    // Process the data in the current node along with its level
-    for (const std::string& value : node->data) {
-        std::cout << "Level " << level << ": " << value << ' ';
-    }
-    std::cout << std::endl;
-
-    // Recursively print the left and right subtrees with increased indentation and level
-    printTree(node->left, level + 1);
-    printTree(node->right, level + 1);
-}
-
-
-/**
- * -------------------------------------
- * 
- *  Wrapper function for displaying
- *  the binary search tree
- * 
- * -------------------------------------
-*/
-void BST::printTree() {
-    std::cout << "Printing the Binary Search Tree:" << std::endl;
-    printTree(root, 0);
-    std::cout << std::endl;
-}
-
-
-/**
- * -------------------------------------
- * 
  *  Prints the Binary Search Tree in preorder traversal,
  *  calls the outputs function to save it to a file
  * 
  * -------------------------------------
 */
 void BST::printPreorder() {
-    printf("\nPreorder: \n");
     printer.clear(); 
     printPreorder(root, 0);
-
-    for (std::string line : printer)
-        std::cout << line << std::endl;
-
-    // output("preorder");
+    output("preorder");
 }
 
 
 /**
  * -------------------------------------
  *  Preorder print helper function
+ * 
+ *  @param node   : reference to input node
+ *  @param level  : node depth/level
  * -------------------------------------
 */
 void BST::printPreorder(node_t* node, int level) {
@@ -340,21 +299,19 @@ void BST::printPreorder(node_t* node, int level) {
  * 
  * -------------------------------------
 */
-void BST::printInorder() {
-    printf("\nInorder: \n");
+void BST::printInorder() {;
     printer.clear(); 
     printInorder(root, 0);
-
-    for (std::string line : printer)
-        std::cout << line << std::endl;
-
-    // output("inorder");
+    output("inorder");
 }
 
 
 /**
  * -------------------------------------
  *  Inorder print helper function
+ * 
+ *  @param node   : reference to input node
+ *  @param level  : node depth/level
  * -------------------------------------
 */
 void BST::printInorder(node_t* node, int level) {
@@ -408,24 +365,23 @@ void BST::printInorder(node_t* node, int level) {
  * 
  *  Prints the Binary Search Tree in postorder traversal, 
  *  calls the outputs function to save it to a file
- * 
+
  * -------------------------------------
 */
 void BST::printPostorder() {
-    printf("\nPostorder: \n");
     printer.clear(); 
     printPostorder(root, 0);
-
-    for (std::string line : printer)
-        std::cout << line << std::endl;
-
-    // output("postorder");
+    output("postorder");
 }
 
 
 /**
  * -------------------------------------
+ * 
  *  Postorder print helper function
+ * 
+ *  @param node   : reference to input node
+ *  @param level  : node depth/level
  * -------------------------------------
 */
 void BST::printPostorder(node_t* node, int level) {
@@ -499,12 +455,8 @@ void BST::output(std::string traversal) {
 
         output += "." + traversal;
     }
-    else {
-        // use:  out."traversal" file name
-        output = "out." + traversal;
-    }
-
-    std::cout << "Creating output file: " << output << std::endl;
+    else
+        output = "out." + traversal; // use:  out."traversal" file name
 
     // create file
     std::fstream output_file(output, std::ios::out);
@@ -516,9 +468,8 @@ void BST::output(std::string traversal) {
     }    
 
     // write tree printer data to file
-    for (auto s: printer) {
+    for (auto s: printer)
         output_file << s << std::endl;
-    }
 
     // close file
     output_file.close();

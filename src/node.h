@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 09/29/2023
+    Date: 09/30/2023
     Description:
         Header, contains the definition for a node structure
         
@@ -12,7 +12,7 @@
 
 // node structure
 struct node_t {
-    std::set<std::string> data; // set of strings
+    std::set<std::string> data; // strings of same length
     node_t* left;
     node_t* right;
 };
