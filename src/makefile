@@ -1,23 +1,21 @@
 CC = g++
 CFLAGS = -Wall -g
 
-P0_SRC = P0.cpp
-P0_EXEC = P0
-
-TREE_SRC = tree.cpp
+P1_SRC = P1.cpp
+P1_EXEC = P1
 
 # List of header files
-HEADERS = node.h tree.h
+HEADERS = P1.h
 
 # build executables
-all: $(P0_EXEC)
+all: $(P1_EXEC)
 
 # P0 executable
-$(P0_EXEC): $(P0_SRC) $(TREE_SRC) $(HEADERS)
-	$(CC) $(CFLAGS) -o $(P0_EXEC) $(P0_SRC) $(TREE_SRC)
+$(P1_EXEC): $(P1_SRC) $(HEADERS)
+	$(CC) $(CFLAGS) -o $(P1_EXEC) $(P1_SRC)
 
 # clean up
 clean:
-	/bin/rm -f *.o $(P0_EXEC)
+	/bin/rm -f *.o $(P1_EXEC)
 
 .PHONY: all clean
