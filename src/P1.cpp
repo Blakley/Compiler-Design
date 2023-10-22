@@ -135,10 +135,8 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
     validate(c, t, r);
 
     // handle token line
-    if (c == '\n') {
+    if (c == '\n')
         t.line ++;
-        return false;
-    }
 
     /*
         ===========================
@@ -146,7 +144,62 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
         ===========================
     */ 
     
+    if (c == 'x' && t.instance == "") {
+        // start of identifer or keyword token
+        t.instance += c;
+        strings_flag = true;
+        return false;
+    }
 
+    // continue building token
+    if (strings_flag && t.instance != "") {
+        if (std::isalnum(c)) {
+            t.instance += c;
+        }
+        else {
+            // check if the token finished: 
+            bool f = false;
+            
+            // check if delimiter is encountered
+            for(std::string& value : r["delimiters"])
+                if (value.find(c) != std::string::npos)
+                    f = true;
+
+            // check if delimiter is encountered
+            for(std::string& value : r["operators"])
+                if (value.find(c) != std::string::npos)
+                    f = true;
+
+            // check if whitespace is encountered
+            if (std::isspace(c))
+                f = true;
+
+            // check if token is finished
+            if (f) {
+                // check if keyword
+                bool keyword = false;
+
+                for(std::string& value : r["keywords"]) {
+                    if (value == t.instance) {
+                        t.id = keyword_tk;
+                        keyword = true;
+                        break;
+                    }
+                }
+
+                // token is an identifier
+                if (!keyword) 
+                    t.id = identifier_tk;
+
+                l.push_back(t);
+
+                // reset token for next character
+                t.id = eof_tk;
+                t.instance = "";
+                strings_flag = false;
+            }
+        }
+    }
 
     /*
         ===============
@@ -362,9 +415,6 @@ void analyze(std::string file) {
         handle output
         =============
     */
-
-    // check if current token is empty
-    // todo: if not, identify it
 
     // append EOF token;
     tokens.push_back(current);
