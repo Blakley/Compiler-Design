@@ -1,9 +1,10 @@
 /*
     Name: Anthony Blakley
-    Date: 10/21/2023
+    Date: 10/22/2023
     Description: 
-        Lexical Analyzer
-         
+        Implementation of a lexical scanner. The scanner is responsible 
+        for tokenizing input text, recognizing various types of tokens 
+        and organizing them into a list of tokens for further processing.
 */
 
 // Imports
@@ -133,10 +134,6 @@ void validate(char c, token t, recognized r) {
 bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
     // check if the character is valid
     validate(c, t, r);
-
-    // handle token line
-    if (c == '\n')
-        t.line ++;
 
     /*
         ===========================
@@ -402,6 +399,10 @@ void analyze(std::string file) {
         // build token
         bool built = tokenize(c, current, tokens, lookup);
 
+        // increment line number
+        if (c == '\n')
+            current.line ++;
+             
         // reset current token
         if (built) {
             // excluding line number
