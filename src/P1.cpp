@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 10/22/2023
+    Date: 10/23/2023
     Description: 
         Implementation of a lexical scanner. The scanner is responsible 
         for tokenizing input text, recognizing various types of tokens 
@@ -86,7 +86,6 @@ void display(std::vector<token> tokens) {
 }
 
 
-
 /**
  * ------------------------------------------
  *  Checks if a character is a recognized
@@ -136,6 +135,91 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
     validate(c, t, r);
 
     /*
+        =====================
+        additional test cases
+        =====================
+    */ 
+    // check if character is valid starting character (x, digit, operator, comment, delimiter, or space)
+    if (!std::isdigit(c) && c != 'x' && t.instance == "" && !std::isspace(c) && c != '$') {
+        // check if character is operator or delimiter
+        bool v = true;
+        for (const std::string& value : r["delimiters"]) {
+            if (value.find(c) != std::string::npos) {
+                v = false;
+                break;
+            }
+        }
+        for (const std::string& value : r["operators"]) {
+            if (value.find(c) != std::string::npos) {
+                v = false;
+                break;
+            }
+        }
+
+        if (v) {
+            // error
+            // xlooplovely should error, because xloop is a keyword and lovely isn't a valid identififer
+            std::string error_chars = "[Error], LEXICAL ERROR. invalid token start character: ";
+            std::cout << error_chars << c << ", line: " << t.line << "\n";
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // invalid token combination
+    if (t.instance != "") {
+
+        // check if current character is a letter
+        for (const std::string& value : r["letters"]) {
+            if (value.find(c) != std::string::npos) {
+    
+                // check if letter != 'x' (only valid starting letter)
+                if (c != 'x') {
+                    // get previous token instance
+                    char previous = t.instance[t.instance.length() - 1];
+
+                    // check if previous character is a integer
+                    if (std::isdigit(previous)) {
+                        // error
+                        // example: 2open, 3e
+                        std::string error_chars = "[Error], LEXICAL ERROR. invalid character(s): ";
+                        std::cout << error_chars << previous << c << ", line: " << t.line << std::endl;
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                
+                break;    
+            }
+        }
+    }
+
+    // check if other digit type token finished
+    if (t.instance != "" && !std::isdigit(c)) {
+        // handles: 123xyz (ensures both are processed seperately)
+
+        // check if all characters are digits
+        bool digits = true;
+        std::string previous = t.instance;
+        
+        for (size_t i = 0; i < previous.length(); i++) {
+            if (!std::isdigit(previous[i])) {
+                digits = false;
+                break;
+            }
+        }
+
+        // check & finish previous digit token
+        if (digits) {
+            t.id = integer_tk;
+            l.push_back(t);
+            integer_flag = false;
+
+            // reset token for the next character
+            t.id = eof_tk;
+            t.instance = "";
+        }        
+    }
+
+    /*
         ===========================
         keyword & identifier tokens
         ===========================
@@ -152,6 +236,20 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
     if (strings_flag && t.instance != "") {
         if (std::isalnum(c)) {
             t.instance += c;
+
+            // check if keyword encoutered
+            for(std::string& value : r["keywords"]) {
+                if (value == t.instance) {
+                    t.id = keyword_tk;
+                    l.push_back(t);
+
+                    // reset token for next character
+                    t.id = eof_tk;
+                    t.instance = "";
+                    strings_flag = false;
+                    break;
+                }
+            }
         }
         else {
             // check if the token finished: 
@@ -252,7 +350,7 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
 
     for (const std::string& value : r["operators"]) {
         if (value.find(c) != std::string::npos) {
-            // ceck if the current character can be appended to the last token
+            // check if the current character can be appended to the last token
             if (!l.empty()) {
                 token& previous = l.back();
                 if (previous.instance == "<" || previous.instance == ">") {
@@ -394,7 +492,7 @@ void analyze(std::string file) {
     // file reading variables
     char c;
 
-    // process characters from the file
+    // process characters from the file through filter
     while (input_file.get(c)) {
         // build token
         bool built = tokenize(c, current, tokens, lookup);
@@ -510,7 +608,7 @@ std::string arguments(int argc, char** argv) {
  *  Entry function
  * ------------------------------------------
 */
-int main(int argc, char** argv) {
+int main(int argc, char** argv) {   
     
     // handle and validate input file
     std::string file = arguments(argc, argv);
