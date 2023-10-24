@@ -5,55 +5,120 @@
         Implementation of a lexical scanner. The scanner is responsible 
         for tokenizing input text, recognizing various types of tokens 
         and organizing them into a list of tokens for further processing.
+        *[ Option #2: FSA Implementation ]
 */
 
-// Imports
-# include <map>
-# include <string>
-# include <vector>
-# include <fstream>
-# include <iostream>
-
-
-// == Globals ==
-
-// character lookup table alias
-using recognized = std::map<std::string, std::vector<std::string>>;
-
-// token types
-enum token_id {
-    eof_tk,
-    space_tk,
-    comment_tk,
-    integer_tk, 
-    keyword_tk,
-    operator_tk,    
-    delimiter_tk,   
-    identifier_tk  
-};
-
-
-// token structure
-struct token {
-    int line;   
-    token_id id;
-    std::string instance;
-};
-
-// token flags
-bool strings_flag = false; // keyword or identifer
-bool comment_flag = false; // comment
-bool integer_flag = false; // integer
+#include "P1.h"
+#include <iostream>
+#include <fstream>
 
 
 /**
  * ------------------------------------------
- * Prints the tokens list
- * 
- * @param tokens : list of tokens
+ *              Constructor
  * ------------------------------------------
 */
-void display(std::vector<token> tokens) {
+Scanner::Scanner() {
+    // initialize member variables
+    inputfile = "";
+    strings_flag = false;
+    comment_flag = false;
+    integer_flag = false;
+}
+
+
+/**
+ * ------------------------------------------
+ *              Destructor
+ * ------------------------------------------
+*/
+Scanner::~Scanner() {
+    // remove temporary file
+    if (inputfile == "_temp") {
+        if (std::remove(inputfile.c_str()) != 0)
+            std::cerr << "[Error], Unable to delete tempory file `_temp`" << std::endl;
+    }  
+}
+
+
+/**
+ * ------------------------------------------
+ * Process command line arguments
+ * 
+ * @param argc  : argument count
+ * @param argv  : argument array
+ * ------------------------------------------
+*/
+void Scanner::arguments(int argc, char** argv) {
+    // create error messages
+    std::string error_args     = "[Error], Invalid number of arguments: ";
+    std::string error_openfile = "[Error], Unable to open input file: ";
+    std::string error_makefile = "[Error], Unable to create temporary input file: ";
+
+    // name of result file
+    std::string filename = "";
+
+    // determine provided arguments
+    switch (argc) {
+        case 1: {
+            // [Read argument from file type 1: redirection file]
+
+            //  create temporary file
+            std::fstream temporary("_temp", std::ios::out);
+
+             // error opening created file
+            if (!temporary.is_open()) { 
+                std::cerr << error_makefile << "_temp" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            // store the input data in the temporary file
+            std::string data;
+            while (std::getline(std::cin, data)) {
+                temporary << data << std::endl;
+            }
+            temporary.close();
+
+            filename = "_temp";
+            break;
+        }
+        case 2: {
+            // [Read argument from file type 2: file argument]
+
+            // append the required extension
+            std::string name = argv[1];
+            name += ".f23";
+            
+            // open file
+            std::ifstream input_file(name, std::ios::in);
+            
+            // check if there is an error with the file
+            if (!input_file.is_open()) {
+                std::cerr << error_openfile << name << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
+            filename = name;
+            break;
+        }
+        default:
+            // argument count error
+            std::cerr << error_args << argc << std::endl;
+            exit(EXIT_FAILURE);
+    }
+
+    // update inputfile name
+    inputfile = filename;
+}
+
+
+/**
+ * ------------------------------------------
+ *      Displays the tokens list
+ * ------------------------------------------
+*/
+void Scanner::display() {
+
     // display format variables
     std::string line_a = std::string(35, '=');
     std::string line_b = std::string(35, '-');
@@ -77,99 +142,86 @@ void display(std::vector<token> tokens) {
     std::cout << line_b << std::endl;
 
     // print tokens
-    for (const auto& token : tokens)
+    for (const auto& token : token_list)
         printf("%-12s %-8d %-6s\n", m[token.id].c_str(), token.line, token.instance.c_str());
 
     // print header end
     std::cout << line_a << std::endl;
-    std::cout << "\n"; 
+    std::cout << "\n";
 }
 
 
 /**
  * ------------------------------------------
  *  Checks if a character is a recognized
- *  character in our alphabet
+ *  Checks for invalid token combinations
+ *  Checks if a integer token is finished
+ *  Ensures to handle tokens without spaces
  * 
  *  @param  c : character
  *  @param  t : current token
- *  @param  r : recognized characters map
  * ------------------------------------------
 */
-void validate(char c, token t, recognized r) {
+void Scanner::validate(char c, token& t) {
     // error message
-    std::string error_chars = "[Error], LEXICAL ERROR. invalid character: ";
+    std::string error_chars_a = "[Error], LEXICAL ERROR. invalid character: ";
+    std::string error_chars_b = "[Error], LEXICAL ERROR. invalid token start character: ";
+    std::string error_chars_c = "[Error], LEXICAL ERROR. invalid character(s): ";
 
-    // iterate map values
-    for (const auto& entry : r) {        
+    // check if character is part of our lexical alphabet
+    bool r = false;
+    for (const auto& entry : recognized) {        
         for (size_t i = 0; i < entry.second.size(); ++i) {
-            if (std::string(1, c) == entry.second[i])
-                return;
+            if (std::string(1, c) == entry.second[i]) {
+                r = true;
+                break;
+            }
         }
     }   
 
-    // final check, white space and comment char
     if (std::isspace(c) || c == '$')
-        return;
-    else {
-        std::cout << error_chars << c << ", line: " << t.line << std::endl;
+        r = true;
+
+    // character is not recognized
+    if (!r) {
+        std::cout << error_chars_a << c << ", line: " << t.line << std::endl;
         exit(EXIT_FAILURE);
-    }
-}
+    } 
 
-
-/**
- * ------------------------------------------
- *  Create a token, represent it based on
- *  one of the token types in `token_id` enum
- * 
- *  @param  c : current character
- *  @param  t : current token instance
- *  @param  l : tokens list
- *  @param  r : recognized characters map
- *  @return   : Flag if the token was built
- * ------------------------------------------
-*/
-bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
-    // check if the character is valid
-    validate(c, t, r);
-
-    /*
-        =====================
-        additional test cases
-        =====================
-    */ 
-    // check if character is valid starting character (x, digit, operator, comment, delimiter, or space)
+    // check if the character is a valid starting character for a token
     if (!std::isdigit(c) && c != 'x' && t.instance == "" && !std::isspace(c) && c != '$') {
-        // check if character is operator or delimiter
+        // check if its a delimiter or operator
         bool v = true;
-        for (const std::string& value : r["delimiters"]) {
-            if (value.find(c) != std::string::npos) {
-                v = false;
-                break;
-            }
-        }
-        for (const std::string& value : r["operators"]) {
+
+        for (const std::string& value : recognized["delimiters"]) {
             if (value.find(c) != std::string::npos) {
                 v = false;
                 break;
             }
         }
 
+        for (const std::string& value : recognized["operators"]) {
+            if (value.find(c) != std::string::npos) {
+                v = false;
+                break;
+            }
+        }        
+
+        // invalid starting character
         if (v) {
-            // error
-            // xlooplovely should error, because xloop is a keyword and lovely isn't a valid identififer
-            std::string error_chars = "[Error], LEXICAL ERROR. invalid token start character: ";
-            std::cout << error_chars << c << ", line: " << t.line << "\n";
-            exit(EXIT_FAILURE);
+            // xlooplovely should error
+            // xloop is a keyword and lovely isn't a valid identififer
+
+            std::cout << error_chars_b << c << ", line: " << t.line << "\n";
+            exit(EXIT_FAILURE);            
         }
     }
 
-    // invalid token combination
+    // check for invalid token combinations
     if (t.instance != "") {
 
         // check if current character is a letter
-        for (const std::string& value : r["letters"]) {
+        for (const std::string& value : recognized["letters"]) {
             if (value.find(c) != std::string::npos) {
     
                 // check if letter != 'x' (only valid starting letter)
@@ -181,18 +233,17 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
                     if (std::isdigit(previous)) {
                         // error
                         // example: 2open, 3e
-                        std::string error_chars = "[Error], LEXICAL ERROR. invalid character(s): ";
-                        std::cout << error_chars << previous << c << ", line: " << t.line << std::endl;
+                        std::cout << error_chars_c << previous << c << ", line: " << t.line << std::endl;
                         exit(EXIT_FAILURE);
                     }
                 }
-                
+
                 break;    
             }
         }
-    }
+    }    
 
-    // check if other digit type token finished
+    // check if integer token is finished (since identifer token can be combined with integers)
     if (t.instance != "" && !std::isdigit(c)) {
         // handles: 123xyz (ensures both are processed seperately)
 
@@ -210,98 +261,80 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
         // check & finish previous digit token
         if (digits) {
             t.id = integer_tk;
-            l.push_back(t);
+            token_list.push_back(t);
             integer_flag = false;
 
             // reset token for the next character
             t.id = eof_tk;
             t.instance = "";
         }        
-    }
+    }    
+}
 
-    /*
-        ===========================
-        keyword & identifier tokens
-        ===========================
-    */ 
-    
+
+/**
+ * ------------------------------------------
+ *    Tokenize identifier and keywords
+ * 
+ *  @param  c : current character
+ *  @param  t : current token instance
+ *  @return   : Flag if the token was built
+ * ------------------------------------------
+*/ 
+bool Scanner::tokenize_strings(char c, token& t) {
+    // start building identifer/keyword token
     if (c == 'x' && t.instance == "") {
-        // start of identifer or keyword token
         t.instance += c;
         strings_flag = true;
         return false;
     }
 
-    // continue building token
+    // continue building token  
     if (strings_flag && t.instance != "") {
+        // update token
         if (std::isalnum(c)) {
             t.instance += c;
 
-            // check if keyword encoutered
-            for(std::string& value : r["keywords"]) {
+            // check if token is a keyword
+            for(std::string& value : recognized["keywords"]) {
                 if (value == t.instance) {
                     t.id = keyword_tk;
-                    l.push_back(t);
+                    token_list.push_back(t);
 
                     // reset token for next character
                     t.id = eof_tk;
                     t.instance = "";
                     strings_flag = false;
-                    break;
+                    return true;
                 }
             }
         }
         else {
-            // check if the token finished: 
-            bool f = false;
+            // token is an identifer
+            t.id = identifier_tk;
+            token_list.push_back(t);
             
-            // check if delimiter is encountered
-            for(std::string& value : r["delimiters"])
-                if (value.find(c) != std::string::npos)
-                    f = true;
-
-            // check if delimiter is encountered
-            for(std::string& value : r["operators"])
-                if (value.find(c) != std::string::npos)
-                    f = true;
-
-            // check if whitespace is encountered
-            if (std::isspace(c))
-                f = true;
-
-            // check if token is finished
-            if (f) {
-                // check if keyword
-                bool keyword = false;
-
-                for(std::string& value : r["keywords"]) {
-                    if (value == t.instance) {
-                        t.id = keyword_tk;
-                        keyword = true;
-                        break;
-                    }
-                }
-
-                // token is an identifier
-                if (!keyword) 
-                    t.id = identifier_tk;
-
-                l.push_back(t);
-
-                // reset token for next character
-                t.id = eof_tk;
-                t.instance = "";
-                strings_flag = false;
-            }
+            // reset token for next character
+            t.id = eof_tk;
+            t.instance = "";
+            strings_flag = false;
         }
     }
 
-    /*
-        ===============
-        integer tokens
-        ===============
-    */ 
-   
+    return false;
+}
+
+
+/**
+ * ------------------------------------------
+ *           Tokenize integers
+ * 
+ *  @param  c : current character
+ *  @param  t : current token instance
+ *  @return   : Flag if the token was built
+ * ------------------------------------------
+*/ 
+bool Scanner::tokenize_integer(char c, token& t) {
     // check for integer tokens
     if (std::isdigit(c) && t.instance == "") {
         t.instance += c;
@@ -316,9 +349,9 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
     }
 
     // check if integer token is complete
-    if (integer_flag && (!std::isdigit(c) || c == '\n')) {
+    if (integer_flag && (!std::isdigit(c))) {
         t.id = integer_tk;
-        l.push_back(t);
+        token_list.push_back(t);
         integer_flag = false;
         
         // reset token for the next character
@@ -326,34 +359,60 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
         t.instance = "";
     }
 
-    /*
-        ================
-        delimiter tokens
-        ================
-    */ 
+    return false;
+}
 
-    for (const std::string& value : r["delimiters"]) {
+
+/**
+ * ------------------------------------------
+ *           Tokenize delimiters
+ * 
+ *  @param  c : current character
+ *  @param  t : current token instance
+ *  @return   : Flag if the token was built
+ * ------------------------------------------
+*/ 
+bool Scanner::tokenize_delimiter(char c, token& t) { 
+    // check if character is a delimiter
+    for (const std::string& value : recognized["delimiters"]) {
         if (value.find(c) != std::string::npos) {
             // make token instance, add to token list
             t.instance = c;
             t.id = delimiter_tk;
-            l.push_back(t);
+            token_list.push_back(t);
             return true;
         }
     }
 
-    /*
-        ===============
-        operator tokens
-        ===============
-    */ 
+    return false;
+}
 
-    for (const std::string& value : r["operators"]) {
+
+/**
+ * ------------------------------------------
+ *           Tokenize operators
+ * 
+ *  @param  c : current character
+ *  @param  t : current token instance
+ *  @return   : Flag if the token was built
+ * ------------------------------------------
+*/ 
+bool Scanner::tokenize_operator(char c, token& t) {
+    // check if character is an operator
+    for (const std::string& value : recognized["operators"]) {
         if (value.find(c) != std::string::npos) {
-            // check if the current character can be appended to the last token
-            if (!l.empty()) {
-                token& previous = l.back();
-                if (previous.instance == "<" || previous.instance == ">") {
+            
+            // check for multi-character operators
+            if (!token_list.empty()) {
+                // get previous token
+                token& previous = token_list.back();
+            
+                if (c == '<' && previous.instance == "<") {
+                    previous.instance += c;
+                    return true;
+                }
+
+                if (c == '>' && previous.instance == ">") {
                     previous.instance += c;
                     return true;
                 }
@@ -362,18 +421,26 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
             // make token instance, add to token list
             t.instance = c;
             t.id = operator_tk;
-            l.push_back(t);
+            token_list.push_back(t);
             return true;
         }
     }
 
-    /*
-        ===============
-        comment tokens
-        ===============
-    */ 
+    return false;
+}
 
-    // beginning of comment
+
+/**
+ * ------------------------------------------
+ *           Tokenize comments
+ *
+ *  @param  c : current character
+ *  @param  t : current token instance
+ *  @return   : Flag if the token was built
+ * ------------------------------------------
+*/ 
+bool Scanner::tokenize_comment(char c, token& t) {
+    // beginning of comment token
     if (!comment_flag && c == '$') {
         t.instance = c;
         comment_flag = true;
@@ -386,11 +453,11 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
         return false;
     }
 
-    // end of comment
+    // end of comment token
     if (comment_flag && c == '$') {
         t.instance += c;
         t.id = comment_tk;
-        l.push_back(t);
+        token_list.push_back(t);
         comment_flag = false;
         return true;
     }
@@ -401,13 +468,56 @@ bool tokenize(char c, token& t, std::vector<token>& l, recognized& r) {
 
 /**
  * ------------------------------------------
- * Recognize the syntax & structure of tokens 
- * Identify and categorizes them
+ *  Create a token, represent it based on
+ *  one of the token types.
  * 
- * @param file  : input file name
+ *  @param  c : current character
+ *  @param  t : current token instance
+ *  @return   : Flag if the token was built
  * ------------------------------------------
 */
-void analyze(std::string file) {
+bool Scanner::tokenizer(char c, token& t) {
+    // token check
+    bool result = false;
+
+    // validate character & token construction
+    validate(c, t);
+
+    // handle keyword & identifer tokens
+    result = tokenize_strings(c, t);
+    if (result)
+        return true;
+
+    // handle integer tokens
+    result = tokenize_integer(c, t);
+    if (result)
+        return true;
+
+    // handle delimiter tokens
+    result = tokenize_delimiter(c, t);
+    if (result)
+        return true;
+
+    // handle operator tokens
+    result = tokenize_operator(c, t);
+    if (result)
+        return true;
+
+    // handle comment tokens
+    result = tokenize_comment(c, t);
+    if (result)
+        return true;
+
+    return false;
+}
+
+
+/**
+ * ------------------------------------------
+ *    Filter tokens from an input file
+ * ------------------------------------------
+*/ 
+void Scanner::filter() {
     /*
         ==========
         open file
@@ -418,11 +528,11 @@ void analyze(std::string file) {
     std::string error_openfile = "[Error], Unable to open input file: ";
 
     // open file
-    std::ifstream input_file(file, std::ios::in);
+    std::ifstream openfile(inputfile, std::ios::in);
     
-    // check if there is an error with the file
-    if (!input_file.is_open()) {
-        std::cerr << error_openfile << file << std::endl;
+    // check if there is an error opening the file
+    if (!openfile.is_open()) {
+        std::cerr << error_openfile << inputfile << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -454,25 +564,18 @@ void analyze(std::string file) {
     std::vector<std::string> d = {".", ",", ":", ";", "(", ")", "{", "}", "[", "]"};
     std::vector<std::string> o = {"=", "<<", ">>", ">", "<", "~", "+", "-", "*", "/", "%"};
 
-    // get a list of keyword stirngs
+    // get a list of keywords
     std::vector<std::string> k = {
         "xopen", "xclose", "xloop", "xdata", "xexit", 
         "xin", "xout", "xcond", "xthen", "xlet", "xfunc"
     };
 
-    /*
-        ============================
-        build character lookup table
-        ============================
-    */
-
-    // lookup map
-    recognized lookup;
-    lookup["numbers"]    = n; 
-    lookup["letters"]    = l;
-    lookup["operators"]  = o; 
-    lookup["delimiters"] = d;
-    lookup["keywords"]   = k; 
+    // store values in recognition map
+    recognized["numbers"]    = n; 
+    recognized["letters"]    = l;
+    recognized["operators"]  = o; 
+    recognized["delimiters"] = d;
+    recognized["keywords"]   = k; 
 
     /*
         =============
@@ -480,22 +583,17 @@ void analyze(std::string file) {
         =============
     */
 
-    // create a token list
-    std::vector<token> tokens;
-
-    // initialize first token
+    // first token reference
     token current;
     current.line = 1;
     current.id = eof_tk;
     current.instance = "";
 
-    // file reading variables
+    // process characters from the file
     char c;
-
-    // process characters from the file through filter
-    while (input_file.get(c)) {
+    while (openfile.get(c)) {
         // build token
-        bool built = tokenize(c, current, tokens, lookup);
+        bool built = tokenizer(c, current);
 
         // increment line number
         if (c == '\n')
@@ -503,118 +601,36 @@ void analyze(std::string file) {
              
         // reset current token
         if (built) {
-            // excluding line number
             current.id = eof_tk;
             current.instance = "";
         }
     }
 
-    /*
-        =============
-        handle output
-        =============
-    */
-
-    // append EOF token;
-    tokens.push_back(current);
-    
-    // print tokens
-    display(tokens);
+    // append EOF token to list;
+    token_list.push_back(current);
 
     // close input file
-    input_file.close();
-
-    // remove temporary file
-    if (file == "_temp") {
-        if (std::remove(file.c_str()) != 0)
-            std::cerr << "[Error], Unable to delete tempory file `_temp`" << std::endl;
-    }   
+    openfile.close();
 }
 
 
 /**
  * ------------------------------------------
- * Parses command line arguments and 
- * checks the validity of the input file
- * 
- * @param argc  : argument count
- * @param argv  : argument array
+ *              Entry function
  * ------------------------------------------
 */
-std::string arguments(int argc, char** argv) {
-    // create error messages
-    std::string error_args     = "[Error], Invalid number of arguments: ";
-    std::string error_openfile = "[Error], Unable to open input file: ";
-    std::string error_makefile = "[Error], Unable to create temporary input file: ";
+int main(int argc, char** argv) {
+    // get scanner object
+    Scanner scanner;
+  
+    // handle input arguments
+    scanner.arguments(argc, argv);
 
-    // name of result file
-    std::string filename = "";
+    // filter tokens
+    scanner.filter();
 
-    // determine provided arguments
-    switch (argc) {
-        case 1: {
-            // Read argument from file type 1: redirection file
-
-            std::fstream temporary("_temp", std::ios::out);
-
-             // error opening created file
-            if (!temporary.is_open()) { 
-                std::cerr << error_makefile << "_temp" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-
-            // store the input data in the temporary file
-            std::string data;
-            while (std::getline(std::cin, data)) {
-                temporary << data << std::endl;
-            }
-            temporary.close();
-
-            filename = "_temp";
-            break;
-        }
-        case 2: {
-            // Read argument from file type 2: file argument
-
-            // append the required extension
-            std::string name = argv[1];
-            name += ".f23";
-            
-            // open file
-            std::ifstream input_file(name, std::ios::in);
-            
-            // check if there is an error with the file
-            if (!input_file.is_open()) {
-                std::cerr << error_openfile << name << std::endl;
-                exit(EXIT_FAILURE);
-            }
-
-            filename = name;
-            break;
-        }
-        default:
-            // argument count error
-            std::cerr << error_args << argc << std::endl;
-            exit(EXIT_FAILURE);
-    }
-
-    // return validated filename
-    return filename;
-}
-
-
-/**
- * ------------------------------------------
- *  Entry function
- * ------------------------------------------
-*/
-int main(int argc, char** argv) {   
-    
-    // handle and validate input file
-    std::string file = arguments(argc, argv);
-    
-    // identifiy and categorize tokens 
-    analyze(file);
+    // output tokens
+    scanner.display();
 
     return 0;
-}   
+}
