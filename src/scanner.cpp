@@ -1,16 +1,16 @@
 /*
     Name: Anthony Blakley
-    Date: 10/23/2023
+    Date: 10/24/2023
     Description: 
-        Implementation of a lexical scanner. The scanner is responsible 
-        for tokenizing input text, recognizing various types of tokens 
-        and organizing them into a list of tokens for further processing.
-        *[ Option #2: FSA Implementation ]
+        lexical scanner function declarations
 */
 
-#include "P1.h"
+#include "scanner.h"
 #include <iostream>
 #include <fstream>
+
+// global input stream reference
+std::ifstream inputfile;
 
 
 /**
@@ -20,10 +20,23 @@
 */
 Scanner::Scanner() {
     // initialize member variables
-    inputfile = "";
+    filename = "";
+    fileindex = 0;
+    lineindex = 1;
+
+    // token builder flags
     strings_flag = false;
     comment_flag = false;
     integer_flag = false;
+    skip_flag = false;
+
+    // initialize token properties
+    _token.line = lineindex;
+    _token.id = eof_tk;
+    _token.instance = "";
+
+    // create token mapping
+    mapping();
 }
 
 
@@ -33,9 +46,13 @@ Scanner::Scanner() {
  * ------------------------------------------
 */
 Scanner::~Scanner() {
+    // close input file stream
+    if (inputfile.is_open())
+        inputfile.close();
+
     // remove temporary file
-    if (inputfile == "_temp") {
-        if (std::remove(inputfile.c_str()) != 0)
+    if (filename == "_temp") {
+        if (std::remove(filename.c_str()) != 0)
             std::cerr << "[Error], Unable to delete tempory file `_temp`" << std::endl;
     }  
 }
@@ -54,9 +71,6 @@ void Scanner::arguments(int argc, char** argv) {
     std::string error_args     = "[Error], Invalid number of arguments: ";
     std::string error_openfile = "[Error], Unable to open input file: ";
     std::string error_makefile = "[Error], Unable to create temporary input file: ";
-
-    // name of result file
-    std::string filename = "";
 
     // determine provided arguments
     switch (argc) {
@@ -97,8 +111,9 @@ void Scanner::arguments(int argc, char** argv) {
                 std::cerr << error_openfile << name << std::endl;
                 exit(EXIT_FAILURE);
             }
-
+            
             filename = name;
+            input_file.close();
             break;
         }
         default:
@@ -107,22 +122,21 @@ void Scanner::arguments(int argc, char** argv) {
             exit(EXIT_FAILURE);
     }
 
-    // update inputfile name
-    inputfile = filename;
+    // open file
+    inputfile.open(filename);
+    if (!inputfile.is_open())
+        std::cerr << error_openfile << std::endl;
 }
 
 
 /**
  * ------------------------------------------
- *      Displays the tokens list
+ *      Displays the token description
+ * 
+ * @param t : created token
  * ------------------------------------------
 */
-void Scanner::display() {
-
-    // display format variables
-    std::string line_a = std::string(35, '=');
-    std::string line_b = std::string(35, '-');
-
+void Scanner::display(token& t) {
     // get token type mapping
     std::map<int, std::string> m = {
         {0, "EOF"},
@@ -135,28 +149,66 @@ void Scanner::display() {
         {7, "Identifer"},
     };
 
-    // print header start
-    std::cout << "\n"; 
-    std::cout << line_a << std::endl;
-    printf("%4s %10s %12s", "Token", "Line", "Instance\n");
-    std::cout << line_b << std::endl;
-
-    // print tokens
-    for (const auto& token : token_list)
-        printf("%-12s %-8d %-6s\n", m[token.id].c_str(), token.line, token.instance.c_str());
-
-    // print header end
-    std::cout << line_a << std::endl;
-    std::cout << "\n";
+    // print token description
+    if (t.id != eof_tk)
+        printf("Token: %-12s Line: %-8d Instance: %-6s\n", m[t.id].c_str(), t.line, t.instance.c_str());
+    else
+        printf("Token: %-12s\n", m[t.id].c_str());
 }
 
 
 /**
  * ------------------------------------------
- *  Checks if a character is a recognized
- *  Checks for invalid token combinations
- *  Checks if a integer token is finished
- *  Ensures to handle tokens without spaces
+ *    Create a token mapping: lookup table
+ * ------------------------------------------
+*/ 
+void Scanner::mapping() {
+    /*
+        =====================
+        build lexer alhphabet
+        =====================
+    */
+
+    // get a list of recognized letters
+    std::vector<std::string> l = {}; 
+
+    for (char c = '0'; c <= 'z'; c++) {
+        if (std::isalpha(c)) {
+            std::string letter = std::string(1, c);
+            l.push_back(letter);
+        }
+    }
+
+    // get a list of recognized numbers
+    std::vector<std::string> n = {}; 
+
+    for (char c = '0'; c <= '9'; c++) {
+        std::string number = std::string(1, c);
+        n.push_back(number);
+    }
+
+    // get a list of delimiters & operator characters
+    std::vector<std::string> d = {".", ",", ":", ";", "(", ")", "{", "}", "[", "]"};
+    std::vector<std::string> o = {"=", "<", ">", "~", "+", "-", "*", "/", "%"};
+
+    // get a list of keywords
+    std::vector<std::string> k = {
+        "xopen", "xclose", "xloop", "xdata", "xexit", 
+        "xin", "xout", "xcond", "xthen", "xlet", "xfunc"
+    };
+
+    // store values in recognition map
+    recognized["numbers"]    = n; 
+    recognized["letters"]    = l;
+    recognized["operators"]  = o; 
+    recognized["delimiters"] = d;
+    recognized["keywords"]   = k; 
+}
+
+
+/**
+ * ------------------------------------------
+ *  Validates token construction
  * 
  *  @param  c : character
  *  @param  t : current token
@@ -166,7 +218,6 @@ void Scanner::validate(char c, token& t) {
     // error message
     std::string error_chars_a = "[Error], LEXICAL ERROR. invalid character: ";
     std::string error_chars_b = "[Error], LEXICAL ERROR. invalid token start character: ";
-    std::string error_chars_c = "[Error], LEXICAL ERROR. invalid character(s): ";
 
     // check if character is part of our lexical alphabet
     bool r = false;
@@ -179,96 +230,44 @@ void Scanner::validate(char c, token& t) {
         }
     }   
 
+    // additional alphabet check
     if (std::isspace(c) || c == '$')
+        r = true;
+
+    // comment tokens can contain any character
+    if (t.instance[0] == '$')
         r = true;
 
     // character is not recognized
     if (!r) {
         std::cout << error_chars_a << c << ", line: " << t.line << std::endl;
         exit(EXIT_FAILURE);
-    } 
+    }     
 
     // check if the character is a valid starting character for a token
-    if (!std::isdigit(c) && c != 'x' && t.instance == "" && !std::isspace(c) && c != '$') {
+    if (c != 'x' && !std::isdigit(c) && t.instance == "" && !std::isspace(c) && c != '$') {
         // check if its a delimiter or operator
-        bool v = true;
+        bool invalid = true;
 
         for (const std::string& value : recognized["delimiters"]) {
             if (value.find(c) != std::string::npos) {
-                v = false;
+                invalid = false;
                 break;
             }
         }
 
         for (const std::string& value : recognized["operators"]) {
             if (value.find(c) != std::string::npos) {
-                v = false;
+                invalid = false;
                 break;
             }
         }        
 
-        // invalid starting character
-        if (v) {
-            // xlooplovely should error
-            // xloop is a keyword and lovely isn't a valid identififer
-
+        if (invalid) {
             std::cout << error_chars_b << c << ", line: " << t.line << "\n";
             exit(EXIT_FAILURE);            
         }
     }
-
-    // check for invalid token combinations
-    if (t.instance != "") {
-
-        // check if current character is a letter
-        for (const std::string& value : recognized["letters"]) {
-            if (value.find(c) != std::string::npos) {
-    
-                // check if letter != 'x' (only valid starting letter)
-                if (c != 'x') {
-                    // get previous token instance
-                    char previous = t.instance[t.instance.length() - 1];
-
-                    // check if previous character is a integer
-                    if (std::isdigit(previous)) {
-                        // error
-                        // example: 2open, 3e
-                        std::cout << error_chars_c << previous << c << ", line: " << t.line << std::endl;
-                        exit(EXIT_FAILURE);
-                    }
-                }
-
-                break;    
-            }
-        }
-    }    
-
-    // check if integer token is finished (since identifer token can be combined with integers)
-    if (t.instance != "" && !std::isdigit(c)) {
-        // handles: 123xyz (ensures both are processed seperately)
-
-        // check if all characters are digits
-        bool digits = true;
-        std::string previous = t.instance;
-        
-        for (size_t i = 0; i < previous.length(); i++) {
-            if (!std::isdigit(previous[i])) {
-                digits = false;
-                break;
-            }
-        }
-
-        // check & finish previous digit token
-        if (digits) {
-            t.id = integer_tk;
-            token_list.push_back(t);
-            integer_flag = false;
-
-            // reset token for the next character
-            t.id = eof_tk;
-            t.instance = "";
-        }        
-    }    
 }
 
 
@@ -284,40 +283,40 @@ void Scanner::validate(char c, token& t) {
 bool Scanner::tokenize_strings(char c, token& t) {
     // start building identifer/keyword token
     if (c == 'x' && t.instance == "") {
-        t.instance += c;
+        t.instance = c;
         strings_flag = true;
+
+        // check if token is finished
+        if (!std::isalnum(lookahead)) {
+            t.id = identifier_tk;
+            strings_flag = false;
+            return true;   
+        }
+
         return false;
     }
 
     // continue building token  
-    if (strings_flag && t.instance != "") {
+    if (strings_flag && std::isalnum(c)) {
         // update token
-        if (std::isalnum(c)) {
-            t.instance += c;
+        t.instance += c;
+
+        // check if token is finished
+        if (!std::isalnum(lookahead)) {
+            // reset flag
+            strings_flag = false;
 
             // check if token is a keyword
             for(std::string& value : recognized["keywords"]) {
                 if (value == t.instance) {
                     t.id = keyword_tk;
-                    token_list.push_back(t);
-
-                    // reset token for next character
-                    t.id = eof_tk;
-                    t.instance = "";
-                    strings_flag = false;
                     return true;
                 }
             }
-        }
-        else {
+
             // token is an identifer
             t.id = identifier_tk;
-            token_list.push_back(t);
-            
-            // reset token for next character
-            t.id = eof_tk;
-            t.instance = "";
-            strings_flag = false;
+            return true;
         }
     }
 
@@ -335,28 +334,32 @@ bool Scanner::tokenize_strings(char c, token& t) {
  * ------------------------------------------
 */ 
 bool Scanner::tokenize_integer(char c, token& t) {
-    // check for integer tokens
+    // check new integer token
     if (std::isdigit(c) && t.instance == "") {
-        t.instance += c;
+        t.instance = c;
+        t.id = integer_tk;
         integer_flag = true;
+
+        // check if integer token is finished
+        if (!std::isdigit(lookahead)) {
+            integer_flag = false;
+            return true;
+        }
+
         return false;
     }
 
     // continue building integer token
     if (integer_flag && std::isdigit(c)) {
         t.instance += c;
-        return false;
-    }
 
-    // check if integer token is complete
-    if (integer_flag && (!std::isdigit(c))) {
-        t.id = integer_tk;
-        token_list.push_back(t);
-        integer_flag = false;
-        
-        // reset token for the next character
-        t.id = eof_tk;
-        t.instance = "";
+        // check if integer token is finished
+        if (!std::isdigit(lookahead)) {
+            integer_flag = false;
+            return true;
+        }
+
+        return false;
     }
 
     return false;
@@ -376,10 +379,8 @@ bool Scanner::tokenize_delimiter(char c, token& t) {
     // check if character is a delimiter
     for (const std::string& value : recognized["delimiters"]) {
         if (value.find(c) != std::string::npos) {
-            // make token instance, add to token list
             t.instance = c;
             t.id = delimiter_tk;
-            token_list.push_back(t);
             return true;
         }
     }
@@ -398,30 +399,34 @@ bool Scanner::tokenize_delimiter(char c, token& t) {
  * ------------------------------------------
 */ 
 bool Scanner::tokenize_operator(char c, token& t) {
+    // check to skip processing operator due to multi-character
+    if (skip_flag) {
+        skip_flag = false;
+        return false;
+    }
+    
     // check if character is an operator
     for (const std::string& value : recognized["operators"]) {
         if (value.find(c) != std::string::npos) {
-            
-            // check for multi-character operators
-            if (!token_list.empty()) {
-                // get previous token
-                token& previous = token_list.back();
-            
-                if (c == '<' && previous.instance == "<") {
-                    previous.instance += c;
-                    return true;
-                }
-
-                if (c == '>' && previous.instance == ">") {
-                    previous.instance += c;
-                    return true;
-                }
-            }            
-
-            // make token instance, add to token list
-            t.instance = c;
+            // set token type
             t.id = operator_tk;
-            token_list.push_back(t);
+
+            // check for multi-character operator [type 1]
+            if (c == '<' && lookahead == '<') {
+                t.instance = "<<";
+                skip_flag = true;
+                return true;
+            }
+
+            // check for multi-character operator [type 2]
+            if (c == '>' && lookahead == '>') {
+                t.instance = ">>";
+                skip_flag = true;
+                return true;
+            }
+
+            // standard operators
+            t.instance = c;
             return true;
         }
     }
@@ -457,7 +462,6 @@ bool Scanner::tokenize_comment(char c, token& t) {
     if (comment_flag && c == '$') {
         t.instance += c;
         t.id = comment_tk;
-        token_list.push_back(t);
         comment_flag = false;
         return true;
     }
@@ -476,7 +480,7 @@ bool Scanner::tokenize_comment(char c, token& t) {
  *  @return   : Flag if the token was built
  * ------------------------------------------
 */
-bool Scanner::tokenizer(char c, token& t) {
+bool Scanner::tokenizer(char c, token& t) {    
     // token check
     bool result = false;
 
@@ -508,129 +512,72 @@ bool Scanner::tokenizer(char c, token& t) {
     if (result)
         return true;
 
-    return false;
+    return result;
 }
 
 
 /**
  * ------------------------------------------
- *    Filter tokens from an input file
+ *           Creates a token
+ * 
+ * @return token : a reference to new token
  * ------------------------------------------
 */ 
-void Scanner::filter() {
-    /*
-        ==========
-        open file
-        ==========
-    */
-    
-    // error messages
-    std::string error_openfile = "[Error], Unable to open input file: ";
-
-    // open file
-    std::ifstream openfile(inputfile, std::ios::in);
-    
-    // check if there is an error opening the file
-    if (!openfile.is_open()) {
-        std::cerr << error_openfile << inputfile << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-    /*
-        =====================
-        build lexer alhphabet
-        =====================
-    */
-
-    // get a list of recognized letters
-    std::vector<std::string> l = {}; 
-
-    for (char c = '0'; c <= 'z'; c++) {
-        if (std::isalpha(c)) {
-            std::string letter = std::string(1, c);
-            l.push_back(letter);
-        }
-    }
-
-    // get a list of recognized numbers
-    std::vector<std::string> n = {}; 
-
-    for (char c = '0'; c <= '9'; c++) {
-        std::string number = std::string(1, c);
-        n.push_back(number);
-    }
-
-    // get a list of delimiters & operator characters
-    std::vector<std::string> d = {".", ",", ":", ";", "(", ")", "{", "}", "[", "]"};
-    std::vector<std::string> o = {"=", "<<", ">>", ">", "<", "~", "+", "-", "*", "/", "%"};
-
-    // get a list of keywords
-    std::vector<std::string> k = {
-        "xopen", "xclose", "xloop", "xdata", "xexit", 
-        "xin", "xout", "xcond", "xthen", "xlet", "xfunc"
-    };
-
-    // store values in recognition map
-    recognized["numbers"]    = n; 
-    recognized["letters"]    = l;
-    recognized["operators"]  = o; 
-    recognized["delimiters"] = d;
-    recognized["keywords"]   = k; 
-
-    /*
-        =============
-        create tokens
-        =============
-    */
-
-    // first token reference
-    token current;
-    current.line = 1;
-    current.id = eof_tk;
-    current.instance = "";
-
-    // process characters from the file
+token Scanner::scanner() {
+    // set next character
     char c;
-    while (openfile.get(c)) {
+    inputfile.seekg(fileindex);
+
+    // process next character from file
+    while (inputfile.get(c)) {    
+        // update lookahead character
+        lookahead = inputfile.peek();
+
         // build token
-        bool built = tokenizer(c, current);
+        bool built = tokenizer(c, _token);
 
         // increment line number
-        if (c == '\n')
-            current.line ++;
-             
-        // reset current token
-        if (built) {
-            current.id = eof_tk;
-            current.instance = "";
+        if (c == '\n') {
+            _token.line ++;
+            lineindex ++;
         }
+
+        // output token
+        if (built) {
+            fileindex ++;
+            display(_token);
+            _token.instance = "";
+            break;
+        }
+
+        fileindex ++;
+        inputfile.seekg(fileindex);
     }
 
-    // append EOF token to list;
-    token_list.push_back(current);
-
-    // close input file
-    openfile.close();
+    // display eof token
+    if (lookahead == EOF) {
+        _token.id = eof_tk;
+        display(_token);
+    }
+    
+    // return token
+    return _token;
 }
 
 
 /**
  * ------------------------------------------
- *              Entry function
+ *        Tester for scanner class
  * ------------------------------------------
-*/
-int main(int argc, char** argv) {
-    // get scanner object
-    Scanner scanner;
-  
-    // handle input arguments
-    scanner.arguments(argc, argv);
+*/ 
+void Scanner::tester() {
+    _token = scanner();
 
-    // filter tokens
-    scanner.filter();
-
-    // output tokens
-    scanner.display();
-
-    return 0;
+    // get tokens from file until EOF
+    while (true) {
+        if (_token.id == eof_tk)
+            break;
+        
+        _token = scanner();
+    }
 }

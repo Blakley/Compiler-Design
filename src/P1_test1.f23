@@ -1,2 +1,3 @@
 x=$rule number 1$100;
-321xfuncxloop12;xkid 2<<3 3>>5
+321xfuncxloop12;xkid 4<3 2<<3 3>>5
+$hello world!$
