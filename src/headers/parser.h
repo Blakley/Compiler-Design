@@ -10,16 +10,21 @@
 
 # include "node.h"
 # include "token.h"
+# include "scanner.h"
 
 // Recursive decent: top-down parser parser class
 class Parser {
     private:
-        // todo
+        // reference to current token
+        std::string _token;
+        
+        // scanner reference
+        Scanner scanner;
 
     public:
         Parser();   // constructor
         ~Parser();  // destructor
-
+        
         void parse_program();  // 
         void parse_varsList(); //
         void parse_vars();     //
@@ -43,9 +48,9 @@ class Parser {
         void parse_RO();     //  
         void parse_assign(); //
 
-        void parse();                      // parser entry point
-        void match(std:: string expected); // determine if the token is correct
-        void error(std:: string message);  // parser error handler 
+        void parse(int a, char** v);      // parser entry point
+        void match(std::string expected); // determine if the token is correct
+        void error(std::string message);  // parser error handler 
 };
 
 # endif // PARSER_H

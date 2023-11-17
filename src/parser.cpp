@@ -17,7 +17,8 @@
 Parser::Parser() {
     std::cout << "\n[Parser]: beginning parser \n\n";
 
-    // Initialization if needed
+    // initialize variables
+    _token = "";
 }
 
 
@@ -34,10 +35,59 @@ Parser::~Parser() {
 /**
  * ------------------------------------------
  * 
+ * 
+ * @param argc  : argument count
+ * @param argv  : argument array
  * ------------------------------------------
 */
-void Parser::parse() {
-    // Implementation for the overall parsing process
+void Parser::parse(int argc, char** argv) {
+    // handle invalid arguments detected by scanner    
+    scanner.arguments(argc, argv);
+
+    // test scanner class
+    // scanner.tester();
+
+    // todo: Implementation for the overall parsing process
+    /*
+        1) start by reading the first token
+        and depending on what it is, call the appropriate 
+        nonterminal function in the parser class.
+        each of those functions will then do their logic
+        and at the end, call scanner again to parse the next given.
+        Similiar to this:
+
+        nonterminal <in> sudo code:
+        func in() {
+            if (token == xin)
+                token = scanner()
+            else 
+                error("xin expected but received token ..")
+
+            if (token == ">>")
+                token = scanner()
+            ekse
+                error("id expected but reeived token")
+
+            if (token == ;tk)
+                token = scanner()
+            else
+                error(";tk expected but received token")
+            
+            return
+        }
+    
+
+        _token = scanner();
+
+        // get tokens from file until EOF
+        while (true) {
+            if (_token.id == eof_tk)
+                break;
+            
+            _token = scanner();
+        }
+    */
+
 }
 
 

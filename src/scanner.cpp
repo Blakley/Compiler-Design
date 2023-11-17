@@ -19,24 +19,22 @@ std::ifstream inputfile;
  *              Constructor
  * ------------------------------------------
 */
-Scanner::Scanner() {
-    std::cout << "[Scanner]: beginning scanner\n\n";
-    
+Scanner::Scanner() {    
     // initialize member variables
     filename = "";
     fileindex = 0;
     lineindex = 1;
 
     // token builder flags
+    skip_flag = false;
     strings_flag = false;
     comment_flag = false;
     integer_flag = false;
-    skip_flag = false;
-
+    
     // initialize token properties
-    _token.line = lineindex;
     _token.id = eof_tk;
     _token.instance = "";
+    _token.line = lineindex;
 
     // create token mapping
     mapping();
@@ -574,6 +572,7 @@ token Scanner::scanner() {
  * ------------------------------------------
 */ 
 void Scanner::tester() {
+    // test function for scanner class
     _token = scanner();
 
     // get tokens from file until EOF
