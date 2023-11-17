@@ -1,14 +1,12 @@
 /*
     Name: Anthony Blakley
-    Date: 10/24/2023
+    Date: 11/16/2023
     Description: 
-        Implementation of a lexical scanner. The scanner is responsible 
-        for tokenizing input text, recognizing various types of tokens 
-        and organizing them into a list of tokens for further processing.
-        *[ Option #2: FSA Implementation ]
+        
 */
 
-# include "scanner.h"
+# include "headers/scanner.h"
+# include "headers/parser.h"
 
 /**
  * ------------------------------------------
@@ -24,6 +22,12 @@ int main(int argc, char** argv) {
     
     // test scanner
     scanner.tester();
+
+    // get parser object
+    Parser parser;
+
+    // start parser
+    parser.parse();
 
     return 0;
 }

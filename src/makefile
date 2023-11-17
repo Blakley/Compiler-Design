@@ -2,21 +2,22 @@ CC = g++ -std=c++11
 CFLAGS = -Wall -g
 
 MAIN_SRC = main.cpp
+PARSER_SRC = parser.cpp
 SCANNER_SRC = scanner.cpp
-SCANNER_EXE = P1
+EXE = P2
 
 # List of header files
-HEADERS = token.h scanner.h
+HEADERS = headers/token.h headers/scanner.h headers/parser.h headers/node.h
 
-# build executables
-all: $(SCANNER_EXE)
+# Build executable
+all: $(EXE)
 
-# P0 executable
-$(SCANNER_EXE): $(SCANNER_SRC) $(MAIN_SRC) $(HEADERS)
-	$(CC) $(CFLAGS) -o $(SCANNER_EXE) $(SCANNER_SRC) $(MAIN_SRC)
+# Executable
+$(EXE): $(MAIN_SRC) $(PARSER_SRC) $(SCANNER_SRC) $(HEADERS)
+	$(CC) $(CFLAGS) -o $(EXE) $(MAIN_SRC) $(PARSER_SRC) $(SCANNER_SRC)
 
-# clean up
+# Clean up
 clean:
-	/bin/rm -f *.o $(SCANNER_EXE)
+	/bin/rm -f *.o $(EXE)
 
 .PHONY: all clean

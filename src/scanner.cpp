@@ -1,13 +1,14 @@
 /*
     Name: Anthony Blakley
-    Date: 10/24/2023
+    Date: 11/16/2023
     Description: 
         lexical scanner function declarations
 */
 
-#include "scanner.h"
-#include <iostream>
-#include <fstream>
+# include "headers/scanner.h"
+# include <iostream>
+# include <fstream>
+
 
 // global input stream reference
 std::ifstream inputfile;
@@ -19,6 +20,8 @@ std::ifstream inputfile;
  * ------------------------------------------
 */
 Scanner::Scanner() {
+    std::cout << "[Scanner]: beginning scanner\n\n";
+    
     // initialize member variables
     filename = "";
     fileindex = 0;

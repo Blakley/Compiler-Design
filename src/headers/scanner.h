@@ -1,9 +1,12 @@
 /*
     Name: Anthony Blakley
-    Date: 10/24/2023
+    Date: 11/16/2023
     Description: 
-        scanner header file for lexical scanner
+        Scanner header file for lexical scanner
 */
+
+# ifndef SCANNER_H
+# define SCANNER_H
 
 # include <map>
 # include "token.h"
@@ -17,7 +20,7 @@ class Scanner {
         char lookahead;
         std::string filename;
 
-        // list of recognized characters and corresponding token category
+        // list of recognized characters and their corresponding token category
         std::map<std::string, std::vector<std::string>> recognized;
 
         // token builder flags
@@ -52,3 +55,4 @@ class Scanner {
         token scanner();    // returns a token
 };
 
+# endif // SCANNER_H

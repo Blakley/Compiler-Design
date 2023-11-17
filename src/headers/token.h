@@ -1,9 +1,12 @@
 /*
     Name: Anthony Blakley
-    Date: 10/24/2023
+    Date: 11/16/2023
     Description: 
-        token header file for lexical scanner
+        Outlines a token structure
 */
+
+# ifndef TOKEN_H
+# define TOKEN_H
 
 # include <vector>
 # include <string>
@@ -26,3 +29,5 @@ struct token {
     ids id;               // token id
     std::string instance; // token value
 };
+
+# endif // TOKEN_H
