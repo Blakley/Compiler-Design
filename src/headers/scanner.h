@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/16/2023
+    Date: 11/17/2023
     Description: 
         Scanner header file for lexical scanner
 */
@@ -9,7 +9,11 @@
 # define SCANNER_H
 
 # include <map>
+# include <tuple>
 # include "token.h"
+
+// A built token and the updated current reference
+typedef std::tuple<token, token> _tokens;
 
 // Lexical scanner class
 class Scanner {
@@ -29,10 +33,10 @@ class Scanner {
         bool integer_flag;
         bool skip_flag;
 
-        // reference to created token
+    public:
+        // reference to current token
         token _token;
 
-    public:
         Scanner();  // constructor
         ~Scanner(); // destructor
 
@@ -52,7 +56,7 @@ class Scanner {
 
         void mapping();     // token filter
         void tester();      // scanner test function
-        token scanner();    // returns a token
+        _tokens scanner();  // returns two tokens
 };
 
 # endif // SCANNER_H

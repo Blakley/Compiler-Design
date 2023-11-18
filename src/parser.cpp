@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/16/2023
+    Date: 11/17/2023
     Description: 
         Parser function declarations
 */
@@ -15,10 +15,7 @@
  * ------------------------------------------
 */
 Parser::Parser() {
-    std::cout << "\n[Parser]: beginning parser \n\n";
-
-    // initialize variables
-    _token = "";
+    // constructor function
 }
 
 
@@ -28,7 +25,7 @@ Parser::Parser() {
  * ------------------------------------------
 */
 Parser::~Parser() {
-    // Cleanup if needed
+    // destructor function
 }
 
 
@@ -47,47 +44,42 @@ void Parser::parse(int argc, char** argv) {
     // test scanner class
     // scanner.tester();
 
+    // get a reference to the first token
+    _tokens results = scanner.scanner();
+    _token = std::get<1>(results);
+
+    // determine which nonterminal the token belongs to
+
+
+    if (_token.id == keyword_tk) {
+
+    }
+
+
+
+
+    // scanner.display(_token);
+    // // get tokens from file until EOF
+    // while (true) {
+    //     if (_token.id == eof_tk)
+    //         break;
+        
+    //     results = scanner.scanner();
+    //     _token = std::get<0>(results);
+
+    //     scanner.display(std::get<1>(results));
+    // }
+
+
+
+
     // todo: Implementation for the overall parsing process
     /*
         1) start by reading the first token
         and depending on what it is, call the appropriate 
         nonterminal function in the parser class.
-        each of those functions will then do their logic
-        and at the end, call scanner again to parse the next given.
-        Similiar to this:
-
-        nonterminal <in> sudo code:
-        func in() {
-            if (token == xin)
-                token = scanner()
-            else 
-                error("xin expected but received token ..")
-
-            if (token == ">>")
-                token = scanner()
-            ekse
-                error("id expected but reeived token")
-
-            if (token == ;tk)
-                token = scanner()
-            else
-                error(";tk expected but received token")
-            
-            return
-        }
-    
-
-        _token = scanner();
-
-        // get tokens from file until EOF
-        while (true) {
-            if (_token.id == eof_tk)
-                break;
-            
-            _token = scanner();
-        }
     */
-
+   
 }
 
 
@@ -206,7 +198,33 @@ void Parser::parse_block() {
  * ------------------------------------------
 */
 void Parser::parse_in() {
+    /*
+    
+        each of those functions will then do their logic
+        and at the end, call scanner again to parse the next given.
+        Similiar to this:
 
+        nonterminal <in> sudo code:
+        func in() {
+            if (token == xin)
+                token = scanner()
+            else 
+                error("xin expected but received token ..")
+
+            if (token == ">>")
+                token = scanner()
+            ekse
+                error("id expected but reeived token")
+
+            if (token == ;tk)
+                token = scanner()
+            else
+                error(";tk expected but received token")
+            
+            return
+        }
+    
+    */
 }
 
 

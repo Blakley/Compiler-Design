@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/16/2023
+    Date: 11/17/2023
     Description: 
         lexical scanner function declarations
 */
@@ -521,10 +521,14 @@ bool Scanner::tokenizer(char c, token& t) {
  * ------------------------------------------
  *           Creates a token
  * 
- * @return token : a reference to new token
+ * @return _tokens : a built token and the 
+ *                 updated current reference
  * ------------------------------------------
 */ 
-token Scanner::scanner() {
+_tokens Scanner::scanner() {
+    // resulting token
+    token result;
+
     // set next character
     char c;
     inputfile.seekg(fileindex);
@@ -546,7 +550,7 @@ token Scanner::scanner() {
         // output token
         if (built) {
             fileindex ++;
-            display(_token);
+            result = _token;
             _token.instance = "";
             break;
         }
@@ -558,11 +562,11 @@ token Scanner::scanner() {
     // display eof token
     if (lookahead == EOF) {
         _token.id = eof_tk;
-        display(_token);
+        result = _token;
     }
     
-    // return token
-    return _token;
+    // return _token and result
+    return std::make_tuple(_token, result); 
 }
 
 
@@ -573,13 +577,21 @@ token Scanner::scanner() {
 */ 
 void Scanner::tester() {
     // test function for scanner class
-    _token = scanner();
+    _tokens results = scanner();
+    _token = std::get<0>(results);
+
+    // output token value
+    display(std::get<1>(results));
 
     // get tokens from file until EOF
     while (true) {
         if (_token.id == eof_tk)
             break;
         
-        _token = scanner();
+        results = scanner();
+        _token = std::get<0>(results);
+
+        // output token value
+        display(std::get<1>(results));
     }
 }

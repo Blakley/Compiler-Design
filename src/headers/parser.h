@@ -16,7 +16,7 @@
 class Parser {
     private:
         // reference to current token
-        std::string _token;
+        token _token;
         
         // scanner reference
         Scanner scanner;
