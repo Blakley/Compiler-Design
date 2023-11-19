@@ -67,29 +67,8 @@ void Parser::begin() {
     _tokens results = scanner.scanner();
     _token = std::get<1>(results);
 
-    // verify first token
-    if (_token.instance != "xopen")
-        error("xopen", _token.instance);
-    
-    // call non terminal function
+    // begin parsing the input program
     parse_program();
-}
-
-
-/**
- * ------------------------------------------
- *         Identifies Nonterminals
- * 
- * @return : returns if the given token
- *           is a nonterminal
- * ------------------------------------------
-*/
-bool Parser::identify(token& t) {
-    // nonterminals are identifier tokens
-    if (t.id == identifier_tk || t.id == keyword_tk)
-        return true;
-
-    return false;
 }
 
 
@@ -130,11 +109,30 @@ void Parser::parse_program() {
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <vars>
+ *  
+ *  BNF production rule: 
+ *      <vars> -> empty | xdata [or identifier] <varList>
  * ------------------------------------------
 */
 void Parser::parse_vars() {
-    // Implementation for parsing <vars>
+
+    if (_token.instance == "xdata") {
+        // the examples show an identifer first
+        // but handle the case where its xdata then the identifer
+        retrieve(); // retrieve next token
+
+        if (_token.id == identifier_tk) {
+            retrieve(); // retrieve next token
+            parse_varsList();
+        }
+    }
+    else if (_token.id == identifier_tk) {
+        retrieve(); // retrieve next token
+        parse_varsList();
+    }
+
+    // else, <vars> should be empty
 }
 
 
@@ -174,10 +172,65 @@ void Parser::parse_varsList() {
         // no semicolon or <varList>; 
         else
             error("';' or identifier", _token.instance);
-    }
-    else 
-        return; // <varList> is empty
+    } 
+    else
+        error("identifier", _token.instance);
 }
+
+
+/**
+ * ------------------------------------------
+ *    Implementation for parsing <stats>
+ *  
+ *  BNF production rule: 
+ *      <stat> -> <in> | <out> | <block> | <if> | <loop> | <assign>
+ * ------------------------------------------
+*/
+void Parser::parse_stat() {
+    // Implementation for parsing <stat>
+}
+
+
+/**
+ * ------------------------------------------
+ *    Implementation for parsing <stats>
+ *  
+ *  BNF production rule: 
+ *      <stats> -> <stat> <mStat>
+ * ------------------------------------------
+*/
+void Parser::parse_stats() {
+    // Implementation for parsing <stats>
+}
+
+
+/**
+ * ------------------------------------------
+ *    Implementation for parsing <mStat>
+ *  
+ *  BNF production rule: 
+ *      empty | <stat> <mStat>
+ * ------------------------------------------
+*/
+void Parser::parse_mStat() {
+    // Implementation for parsing <mStat>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
@@ -217,43 +270,6 @@ void Parser::parse_N() {
 */
 void Parser::parse_R() {
     // Implementation for parsing <R>
-}
-
-
-/**
- * ------------------------------------------
- * 
- * ------------------------------------------
-*/
-void Parser::parse_stat() {
-    // Implementation for parsing <stat>
-}
-
-
-/**
- * ------------------------------------------
- *    Implementation for parsing <stats>
- *  
- *  BNF production rule: 
- *      <stats> -> <stat> <mStat>
- * ------------------------------------------
-*/
-void Parser::parse_stats() {
-    // Implementation for parsing <stat>
-    parse_stat();
-
-    // Implementation for parsing <mStat>
-    parse_mStat();
-}
-
-
-/**
- * ------------------------------------------
- * 
- * ------------------------------------------
-*/
-void Parser::parse_mStat() {
-    // Implementation for parsing <mStat>
 }
 
 
@@ -503,7 +519,6 @@ void Parser::parse_assign() {
 }
 
 
-
 /**
  * ------------------------------------------
  * 
@@ -512,6 +527,12 @@ void Parser::parse_assign() {
 void Parser::parse_RO() {
     // Implementation for parsing <RO>
 }
+
+
+
+
+
+
 
 
 /**

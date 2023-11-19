@@ -51,7 +51,6 @@ class Parser {
         nonterminal_function parse();               // parser handler           
         void begin();                               // parser entry point
         void retrieve();                            // get the next token
-        bool identify(token& t);                    // returns if the token is a nonterminal
         void error(std::string e, std::string v);   // parser error handler 
 };
 
