@@ -8,17 +8,6 @@
 # include "headers/parser.h"
 # include <iostream>
 
-// nonterminal function pointer table (potentially remove these)
-using nonterminal_function = void (Parser::*)();
-
-std::map<std::string, nonterminal_function> nonterminals = {
-    {"xin"   , &Parser::parse_in},
-    {"xout"  , &Parser::parse_out},
-    {"xcond" , &Parser::parse_if},
-    {"xloop" , &Parser::parse_loop},
-    {"xlet"  , &Parser::parse_assign},
-};
-
 
 /**
  * ------------------------------------------
@@ -42,31 +31,11 @@ Parser::~Parser() {
 
 /**
  * ------------------------------------------
- *             Parser handler
- *   Determines which nonterminal is next
- *     in the program verification
- * ------------------------------------------
-*/
-Parser::nonterminal_function Parser::parse() {
-    // todo: (potentially remove this function)
-    // maybe return a function pointer to the next function we should call
-
-    // example return
-    return &Parser::parse_in;
-} 
-
-
-/**
- * ------------------------------------------
  *         Token parsing handler 
  *    Starts the initial top-down parsing
  * ------------------------------------------
 */
 void Parser::begin() {
-    // get a reference to the first token
-    _tokens results = scanner.scanner();
-    _token = std::get<1>(results);
-
     // begin parsing the input program
     parse_program();
 }
@@ -81,25 +50,25 @@ void Parser::begin() {
  * ------------------------------------------
 */
 void Parser::parse_program() {
-    std::cout << "About to start parsing <program>.\n";
-
     // call function to parse <vars>
+    retrieve();
     parse_vars();
 
     // verify the opening parenthesis
-    if (_token.instance == "xopen")
-        retrieve(); // retrieve next token
-    else
+    if (_token.instance != "xopen")
         error("xopen", _token.instance);
 
     // call function to parse <stats>
+    retrieve(); 
     parse_stats();
 
     // verify the closing parenthesis
-    if (_token.instance == "xclose")
-        retrieve(); // retrieve next token
-    else
+    if (_token.instance != "xclose")
         error("xclose", _token.instance);
+
+    retrieve(); 
+    if (_token.id != eof_tk)
+        error("EOF", _token.instance);
 
     // finished parsing
     // todo: print print
@@ -116,21 +85,19 @@ void Parser::parse_program() {
  * ------------------------------------------
 */
 void Parser::parse_vars() {
-
+    // verify token value
     if (_token.instance == "xdata") {
         // the examples show an identifer first
         // but handle the case where its xdata then the identifer
-        retrieve(); // retrieve next token
+        retrieve();
 
-        if (_token.id == identifier_tk) {
-            retrieve(); // retrieve next token
+        if (_token.id == identifier_tk)    
             parse_varsList();
-        }
+        else
+            error("identifier", _token.instance);
     }
-    else if (_token.id == identifier_tk) {
-        retrieve(); // retrieve next token
+    else if (_token.id == identifier_tk)
         parse_varsList();
-    }
 
     // else, <vars> should be empty
 }
@@ -163,7 +130,7 @@ void Parser::parse_varsList() {
 
         // check for the semicolon or the next <varList>
         if (_token.instance == ";") {
-            retrieve(); // retrieve next token
+            retrieve(); // finished, retrieve next token
         }
         // no semicolon; optional <varList> follows
         else if (_token.id == identifier_tk) {
@@ -231,7 +198,10 @@ void Parser::parse_stats() {
  * ------------------------------------------
 */
 void Parser::parse_mStat() {
-    // Check if there are more statements
+    // retrieve next token
+    retrieve();
+
+    // check if there are more statements
     if (_token.instance == "xin"   || _token.instance == "xout" || _token.instance == "{" 
     ||  _token.instance == "xcond" || _token.instance == "xloop" 
     ||  _token.instance == "xlet") {
@@ -244,24 +214,6 @@ void Parser::parse_mStat() {
 
     // else, <mStat> should be empty
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /**
@@ -313,8 +265,6 @@ void Parser::parse_R() {
  * ------------------------------------------
 */
 void Parser::parse_block() {
-    std::cout << "Token is {, parsing <block> nonterminal.\n";
-
     // verify the opening curly brace
     if (_token.instance == "{")
         retrieve(); // retrieve next token
@@ -328,16 +278,9 @@ void Parser::parse_block() {
     parse_stats();
 
     // verify the closing curly brace
-    if (_token.instance == "}")
-        retrieve(); // retrieve next token
-    else
+    if (_token.instance != "}")
         error("}", _token.instance);
-
-    // finished parsing nonterminal, call next function
-    Parser::nonterminal_function next = this->parse();
-    (this->*next)();
 }
-
 
 /**
  * ------------------------------------------
@@ -348,9 +291,6 @@ void Parser::parse_block() {
  * ------------------------------------------
 */
 void Parser::parse_in() {
-
-    std::cout << "Token is xin, parsing <in> nonterminal.\n";
-
     // verify first token
     if (_token.instance == "xin")
         retrieve(); // retrieve next token
@@ -370,12 +310,7 @@ void Parser::parse_in() {
         error("identifier", _token.instance);
     
     // verify next expected token
-    if (_token.instance == ";") {
-        // finished parsing nonterminal, call next function
-        Parser::nonterminal_function next = this->parse();
-        (this->*next)(); 
-    }
-    else 
+    if (_token.instance != ";")
         error(";", _token.instance);
 }
 
@@ -409,8 +344,9 @@ void Parser::parse_out() {
     // verify next expected token
     if (_token.instance == ";") {
         // finished parsing nonterminal, call next function
-        Parser::nonterminal_function next = this->parse();
-        (this->*next)(); 
+        // Parser::nonterminal_function next = this->parse();
+        // (this->*next)(); 
+        return;
     }
     else 
         error(";", _token.instance);
@@ -458,9 +394,9 @@ void Parser::parse_if() {
     // call function to parse <stat>
     parse_stat();
 
-    // finished parsing nonterminal, call next function
-    Parser::nonterminal_function next = this->parse();
-    (this->*next)(); 
+    // // finished parsing nonterminal, call next function
+    // Parser::nonterminal_function next = this->parse();
+    // (this->*next)(); 
 }
 
 
@@ -505,9 +441,9 @@ void Parser::parse_loop() {
     // call function to parse <stat>
     parse_stat();
 
-    // finished parsing nonterminal, call next function
-    Parser::nonterminal_function next = this->parse();
-    (this->*next)();
+    // // finished parsing nonterminal, call next function
+    // Parser::nonterminal_function next = this->parse();
+    // (this->*next)();
 }
 
 
@@ -541,9 +477,9 @@ void Parser::parse_assign() {
     if (_token.instance == ";") {
         retrieve();
         
-        // finished parsing nonterminal, call next function
-        Parser::nonterminal_function next = this->parse();
-        (this->*next)();
+        // // finished parsing nonterminal, call next function
+        // Parser::nonterminal_function next = this->parse();
+        // (this->*next)();
     }
     else
         error(";", _token.instance);
@@ -558,12 +494,6 @@ void Parser::parse_assign() {
 void Parser::parse_RO() {
     // Implementation for parsing <RO>
 }
-
-
-
-
-
-
 
 
 /**

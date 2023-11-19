@@ -15,9 +15,6 @@
 // Recursive decent: top-down parser parser class
 class Parser {
     private:
-        // Define function pointer type
-        typedef void (Parser::*nonterminal_function)();
-
         token _token;     // reference to current token
         Scanner& scanner; // scanner reference
 
@@ -48,7 +45,6 @@ class Parser {
         void parse_RO();     //  
         void parse_assign(); //
 
-        nonterminal_function parse();               // parser handler           
         void begin();                               // parser entry point
         void retrieve();                            // get the next token
         void error(std::string e, std::string v);   // parser error handler 
