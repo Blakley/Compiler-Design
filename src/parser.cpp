@@ -220,12 +220,22 @@ void Parser::parse_mStat() {
  *    Implementation for parsing <exp>
  *  
  *  BNF production rule: 
- *      <exp> -> <M> / <exp> | <M> * <exp> | <M>
+ *      <exp> -> <M> / <exp> | <M> * <exp> | 
+ *               <M> + <exp> | <M> - <exp> | 
+ *               <M> ~ <exp> | <M>
  *      
  * ------------------------------------------
 */
 void Parser::parse_exp() {
-    // Implementation for parsing <exp>
+    // handle first part of rule
+    parse_M();
+
+    // check for division, multiplication, addition, subtraction, and ~
+    while (_token.instance == "/" || _token.instance == "*"
+        || _token.instance == "+" || _token.instance == "-" || _token.instance == "~") {
+        retrieve();  // retrieve next token
+        parse_M();
+    }
 }
 
 
@@ -239,7 +249,14 @@ void Parser::parse_exp() {
  * ------------------------------------------
 */
 void Parser::parse_M() {
-    // Implementation for parsing <M>
+    // handle first part of rule
+    parse_N();
+
+    // check for addition
+    while (_token.instance == "+") {
+        retrieve(); // retrieve next token
+        parse_M();  // parse the next <M>
+    }
 }
 
 
@@ -252,7 +269,20 @@ void Parser::parse_M() {
  * ------------------------------------------
 */
 void Parser::parse_N() {
-    // Implementation for parsing <N>
+    // check for unary minus
+    if (_token.instance == "~") {
+        retrieve(); // retrieve next token
+        parse_N();  // parse the next <N>
+    } 
+    else {
+        parse_R();  // parse <R>
+
+        // check for subtraction
+        while (_token.instance == "-") {
+            retrieve(); // retrieve next token
+            parse_N();  // parse the next <N>
+        }
+    }
 }
 
 
@@ -265,7 +295,21 @@ void Parser::parse_N() {
  * ------------------------------------------
 */
 void Parser::parse_R() {
-    // Implementation for parsing <R>
+    // handle first case
+    if (_token.instance == "(") {
+        retrieve();  // retrieve next token
+        parse_exp(); // parse the enclosed <exp>
+
+        // verify and consume the closing parenthesis
+        if (_token.instance == ")")
+            retrieve(); // retrieve next token
+        else
+            error(")", _token.instance);
+    } 
+    else if (_token.id == identifier_tk || _token.id == integer_tk)
+        retrieve(); // retrieve next token
+    else 
+        error("identifier, integer, or (", _token.instance);
 }
 
 
