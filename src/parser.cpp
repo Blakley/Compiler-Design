@@ -60,6 +60,8 @@ void Parser::parse_program() {
     if (_token.instance != "xopen")
         error("xopen", _token.instance);
 
+    std::cout << "consumed <xopen>\n";
+
     // call function to parse <stats>
     retrieve(); 
     parse_stats();
@@ -68,13 +70,16 @@ void Parser::parse_program() {
     if (_token.instance != "xclose")
         error("xclose", _token.instance);
 
+    std::cout << "consumed <xclose>\n";
+
     retrieve(); 
     if (_token.id != eof_tk)
         error("EOF", _token.instance);
 
     // finished parsing
-    // todo: print print
-    std::cout << "Parsing <program> completed.\n";
+    // implement nodes to print tree
+    // todo: print tree using inorder traversal
+    std::cout << "\nParsing <program> completed.\n";
 }
 
 
@@ -95,13 +100,17 @@ void Parser::parse_vars() {
         // but handle the case where its xdata then the identifer
         retrieve();
 
-        if (_token.id == identifier_tk)    
+        if (_token.id == identifier_tk) {
+            std::cout << "consumed: " << _token.instance << " token\n";
             parse_varList();
+        }
         else
             error("identifier", _token.instance);
     }
-    else if (_token.id == identifier_tk)
+    else if (_token.id == identifier_tk) {
+        std::cout << "consumed: " << _token.instance << " token\n";
         parse_varList();
+    }
 
     // else, <vars> should be empty
 }
@@ -123,23 +132,29 @@ void Parser::parse_varList() {
         retrieve(); // retrieve next token
 
         // verify the colon
-        if (_token.instance == ":")
+        if (_token.instance == ":") {
+            std::cout << "consumed: " << _token.instance << " token\n";
             retrieve(); // retrieve next token
+        }
         else
             error(":", _token.instance);
 
         // verify the integer
-        if (_token.id == integer_tk)
+        if (_token.id == integer_tk) {
+            std::cout << "consumed: " << _token.instance << " token\n";
             retrieve(); // retrieve next token
+        }
         else
             error("integer", _token.instance);
 
         // check for the semicolon or the next <varList>
         if (_token.instance == ";") {
+            std::cout << "consumed: " << _token.instance << " token\n";
             retrieve(); // finished, retrieve next token
         }
         // no semicolon; optional <varList> follows
         else if (_token.id == identifier_tk) {
+            std::cout << "consumed: " << _token.instance << " token\n";
             parse_varList();
         }
         // no semicolon or <varList>; 
@@ -215,6 +230,8 @@ void Parser::parse_mStat() {
     if (_token.instance == "xin"   || _token.instance == "xout" || _token.instance == "{" 
     ||  _token.instance == "xcond" || _token.instance == "xloop" 
     ||  _token.instance == "xlet") {
+        std::cout << "consumed: " << _token.instance << " token\n";
+
         // parse another statement
         parse_stat();
 
@@ -247,6 +264,7 @@ void Parser::parse_exp() {
     // check for division, multiplication, addition, subtraction, and ~
     while (_token.instance == "/" || _token.instance == "*"
         || _token.instance == "+" || _token.instance == "-" || _token.instance == "~") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();  // retrieve next token
         parse_M();
     }
@@ -270,6 +288,7 @@ void Parser::parse_M() {
 
     // check for addition
     while (_token.instance == "+") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
         parse_M();  // parse the next <M>
     }
@@ -289,6 +308,7 @@ void Parser::parse_N() {
 
     // verify first token
     if (_token.instance == "~") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
         parse_N();  // parse the next <N>
     } 
@@ -297,6 +317,7 @@ void Parser::parse_N() {
 
         // check for subtraction
         while (_token.instance == "-") {
+            std::cout << "consumed: " << _token.instance << " token\n";
             retrieve(); // retrieve next token
             parse_N();  // parse the next <N>
         }
@@ -317,17 +338,22 @@ void Parser::parse_R() {
 
     // verify first token
     if (_token.instance == "(") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();  // retrieve next token
         parse_exp(); // parse the enclosed <exp>
 
         // verify and consume the closing parenthesis
-        if (_token.instance == ")")
+        if (_token.instance == ")") {
+            std::cout << "consumed: " << _token.instance << " token\n";
             retrieve(); // retrieve next token
+        }
         else
             error(")", _token.instance);
     } 
-    else if (_token.id == identifier_tk || _token.id == integer_tk)
+    else if (_token.id == identifier_tk || _token.id == integer_tk) {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else 
         error("identifier, integer, or (", _token.instance);
 }
@@ -345,8 +371,10 @@ void Parser::parse_block() {
     std::cout << "handling <block> BNF\n";
 
     // verify the opening curly brace
-    if (_token.instance == "{")
+    if (_token.instance == "{") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else
         error("{", _token.instance);
 
@@ -359,6 +387,8 @@ void Parser::parse_block() {
     // verify the closing curly brace
     if (_token.instance != "}")
         error("}", _token.instance);
+
+    std::cout << "consumed: " << _token.instance << " token\n";
 }
 
 
@@ -374,26 +404,34 @@ void Parser::parse_in() {
     std::cout << "handling <in> BNF\n";
 
     // verify first token
-    if (_token.instance == "xin")
+    if (_token.instance == "xin") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else 
         error("xin", _token.instance);
 
     // verify next expected token
-    if (_token.instance == ">>") 
+    if (_token.instance == ">>") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else
         error(">>", _token.instance);
 
     // verify next expected token
-    if (_token.id == identifier_tk)
+    if (_token.id == identifier_tk) {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else
         error("identifier", _token.instance);
     
     // verify next expected token
     if (_token.instance != ";")
         error(";", _token.instance);
+
+    std::cout << "consumed: " << _token.instance << " token\n";
 }
 
 
@@ -409,14 +447,18 @@ void Parser::parse_out() {
     std::cout << "handling <out> BNF\n";
 
     // verify first token
-    if (_token.instance == "xout")
+    if (_token.instance == "xout") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else 
         error("xout", _token.instance);
 
     // verify next expected token
-    if (_token.instance == "<<") 
+    if (_token.instance == "<<")  {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else
         error("<<", _token.instance);
 
@@ -424,8 +466,10 @@ void Parser::parse_out() {
     parse_exp();
 
     // verify next expected token
-    if (_token.instance != ";")
+    if (_token.instance != ";") 
         error(";", _token.instance);
+
+    std::cout << "consumed: " << _token.instance << " token\n";
 }
 
 
@@ -441,14 +485,18 @@ void Parser::parse_if() {
     std::cout << "handling <if> BNF\n";
 
     // verify first token
-    if (_token.instance == "xcond")
+    if (_token.instance == "xcond") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else 
         error("xcond", _token.instance);
 
     // verify next expected token
-    if (_token.instance == "[") 
+    if (_token.instance == "[") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else
         error("[", _token.instance);
 
@@ -462,8 +510,10 @@ void Parser::parse_if() {
     parse_exp();
 
     // verify next expected token
-    if (_token.instance == "]") 
+    if (_token.instance == "]") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
+    }
     else
         error("]", _token.instance);
 
@@ -484,14 +534,18 @@ void Parser::parse_loop() {
     std::cout << "handling <loop> BNF\n";
 
     // verify first token
-    if (_token.instance == "xloop")
+    if (_token.instance == "xloop") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();
+    }
     else
         error("xloop", _token.instance);
 
     // verify next expected token
-    if (_token.instance == "[")
+    if (_token.instance == "[") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();
+    }
     else
         error("[", _token.instance);
 
@@ -505,8 +559,10 @@ void Parser::parse_loop() {
     parse_exp();
 
     // verify next expected token
-    if (_token.instance == "]")
+    if (_token.instance == "]") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();
+    }
     else
         error("]", _token.instance);
 
@@ -527,14 +583,18 @@ void Parser::parse_assign() {
     std::cout << "handling <assign> BNF\n";
 
     // verify first token
-    if (_token.instance == "xlet")
+    if (_token.instance == "xlet") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();
+    }
     else
         error("xlet", _token.instance);
 
     // verify next expected token
-    if (_token.id == identifier_tk)
+    if (_token.id == identifier_tk) {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();
+    }
     else
         error("identifier", _token.instance);
 
@@ -544,6 +604,8 @@ void Parser::parse_assign() {
     // verify next expected token
     if (_token.instance != ";")
         error(";", _token.instance); 
+
+    std::cout << "consumed: " << _token.instance << " token\n";
 }
 
 
@@ -562,8 +624,10 @@ void Parser::parse_RO() {
     // check for the possible relational operators
     if (_token.instance == "<<" || _token.instance == ">>" ||
         _token.instance == "<" || _token.instance == ">" ||
-        _token.instance == "=" || _token.instance == "%")
+        _token.instance == "=" || _token.instance == "%") {
+        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();  // consume the relational operator
+    }
     else
         error("relational operator", _token.instance);
 }
