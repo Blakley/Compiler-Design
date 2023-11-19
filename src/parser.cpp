@@ -8,7 +8,7 @@
 # include "headers/parser.h"
 # include <iostream>
 
-// nonterminal function pointer table
+// nonterminal function pointer table (potentially remove these)
 using nonterminal_function = void (Parser::*)();
 
 std::map<std::string, nonterminal_function> nonterminals = {
@@ -48,7 +48,7 @@ Parser::~Parser() {
  * ------------------------------------------
 */
 Parser::nonterminal_function Parser::parse() {
-    // todo: 
+    // todo: (potentially remove this function)
     // maybe return a function pointer to the next function we should call
 
     // example return
@@ -180,14 +180,28 @@ void Parser::parse_varsList() {
 
 /**
  * ------------------------------------------
- *    Implementation for parsing <stats>
+ *    Implementation for parsing <stat>
  *  
  *  BNF production rule: 
  *      <stat> -> <in> | <out> | <block> | <if> | <loop> | <assign>
  * ------------------------------------------
 */
 void Parser::parse_stat() {
-    // Implementation for parsing <stat>
+    if (_token.instance == "xin")
+        parse_in();
+    else if (_token.instance == "xout")
+        parse_out();
+    else if (_token.instance == "{") 
+        parse_block();
+    else if (_token.instance == "xcond") 
+        parse_if();
+    else if (_token.instance == "xloop") 
+        parse_loop();
+    else if (_token.instance == "xlet") 
+        parse_assign();
+    else
+        // handle error: unexpected token for <stat>
+        error("statement", _token.instance);
 }
 
 
@@ -200,7 +214,11 @@ void Parser::parse_stat() {
  * ------------------------------------------
 */
 void Parser::parse_stats() {
-    // Implementation for parsing <stats>
+    // parse a single statement
+    parse_stat();
+
+    // parse additional statements (if any)
+    parse_mStat();
 }
 
 
@@ -213,8 +231,21 @@ void Parser::parse_stats() {
  * ------------------------------------------
 */
 void Parser::parse_mStat() {
-    // Implementation for parsing <mStat>
+    // Check if there are more statements
+    if (_token.instance == "xin"   || _token.instance == "xout" || _token.instance == "{" 
+    ||  _token.instance == "xcond" || _token.instance == "xloop" 
+    ||  _token.instance == "xlet") {
+        // parse another statement
+        parse_stat();
+
+        // parse additional statements (if any)
+        parse_mStat();
+    } 
+
+    // else, <mStat> should be empty
 }
+
+
 
 
 
