@@ -217,7 +217,11 @@ void Parser::parse_mStat() {
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <exp>
+ *  
+ *  BNF production rule: 
+ *      <exp> -> <M> / <exp> | <M> * <exp> | <M>
+ *      
  * ------------------------------------------
 */
 void Parser::parse_exp() {
@@ -227,7 +231,11 @@ void Parser::parse_exp() {
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <M>
+ *  
+ *  BNF production rule: 
+ *      <M> -> <N> + <M> | <N>
+ *      
  * ------------------------------------------
 */
 void Parser::parse_M() {
@@ -237,7 +245,10 @@ void Parser::parse_M() {
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <N>
+ *  
+ *  BNF production rule: 
+ *      <N> -> <R> - <N> | ~ <N> | <R> 
  * ------------------------------------------
 */
 void Parser::parse_N() {
@@ -247,7 +258,10 @@ void Parser::parse_N() {
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <R>
+ *  
+ *  BNF production rule: 
+ *      <R> -> ( <exp> ) | identifier | integer
  * ------------------------------------------
 */
 void Parser::parse_R() {

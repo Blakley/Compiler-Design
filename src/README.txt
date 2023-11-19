@@ -51,3 +51,8 @@ Call next nonterminal function
 
 Figure out main parser function 
 to see when to call/retrieve the next tokens
+
+ignore spaces like below:
+xopen $shortestProgramPrint1$ 
+    xout << 1 ; 
+xclose
