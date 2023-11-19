@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/17/2023
+    Date: 11/18/2023
     Description: 
         Parser function declarations
 */
@@ -133,18 +133,50 @@ void Parser::parse_program() {
  * 
  * ------------------------------------------
 */
-void Parser::parse_varsList() {
-    // Implementation for parsing <varsList>
+void Parser::parse_vars() {
+    // Implementation for parsing <vars>
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <varList>
+ *  
+ *  BNF production rule: 
+ *      <varList> -> identifier : integer ; | identifier : integer <varList>
  * ------------------------------------------
 */
-void Parser::parse_vars() {
-    // Implementation for parsing <vars>
+void Parser::parse_varsList() {
+    // check for the identifier
+    if (_token.id == identifier_tk) {
+        retrieve(); // retrieve next token
+
+        // verify the colon
+        if (_token.instance == ":")
+            retrieve(); // retrieve next token
+        else
+            error(":", _token.instance);
+
+        // verify the integer
+        if (_token.id == integer_tk)
+            retrieve(); // retrieve next token
+        else
+            error("integer", _token.instance);
+
+        // check for the semicolon or the next <varList>
+        if (_token.instance == ";") {
+            retrieve(); // retrieve next token
+        }
+        // no semicolon; optional <varList> follows
+        else if (_token.id == identifier_tk) {
+            parse_varsList();
+        }
+        // no semicolon or <varList>; 
+        else
+            error("';' or identifier", _token.instance);
+    }
+    else 
+        return; // <varList> is empty
 }
 
 
