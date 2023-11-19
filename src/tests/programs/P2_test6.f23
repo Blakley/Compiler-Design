@@ -5,5 +5,5 @@ xopen
       { xout << 1 ; 
       } 
     } 
-    xout << 1 ; 
+    xout << 1 ;
 xclose

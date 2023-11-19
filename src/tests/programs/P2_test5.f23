@@ -6,5 +6,5 @@ xopen
       x2 : 2 ; 
       xout << 1 ; 
     } 
-    xout << 1 ; 
+    xout << 1 ;
 xclose

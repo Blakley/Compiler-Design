@@ -50,6 +50,8 @@ void Parser::begin() {
  * ------------------------------------------
 */
 void Parser::parse_program() {
+    std::cout << "handling <program> BNF\n";
+
     // call function to parse <vars>
     retrieve();
     parse_vars();
@@ -85,6 +87,8 @@ void Parser::parse_program() {
  * ------------------------------------------
 */
 void Parser::parse_vars() {
+    std::cout << "handling <vars> BNF\n";
+
     // verify token value
     if (_token.instance == "xdata") {
         // the examples show an identifer first
@@ -112,6 +116,8 @@ void Parser::parse_vars() {
  * ------------------------------------------
 */
 void Parser::parse_varList() {
+    std::cout << "handling <varList> BNF\n";
+
     // check for the identifier
     if (_token.id == identifier_tk) {
         retrieve(); // retrieve next token
@@ -154,6 +160,8 @@ void Parser::parse_varList() {
  * ------------------------------------------
 */
 void Parser::parse_stat() {
+    std::cout << "handling <stat> BNF\n";
+
     if (_token.instance == "xin")
         parse_in();
     else if (_token.instance == "xout")
@@ -181,6 +189,8 @@ void Parser::parse_stat() {
  * ------------------------------------------
 */
 void Parser::parse_stats() {
+    std::cout << "handling <stats> BNF\n";
+
     // parse a single statement
     parse_stat();
 
@@ -199,6 +209,8 @@ void Parser::parse_stats() {
  * ------------------------------------------
 */
 void Parser::parse_mStat() {
+    std::cout << "handling <mStat> BNF\n";
+
     // check if there are more statements
     if (_token.instance == "xin"   || _token.instance == "xout" || _token.instance == "{" 
     ||  _token.instance == "xcond" || _token.instance == "xloop" 
@@ -227,6 +239,8 @@ void Parser::parse_mStat() {
  * ------------------------------------------
 */
 void Parser::parse_exp() {
+    std::cout << "handling <exp> BNF\n";
+
     // handle first part of rule
     parse_M();
 
@@ -249,6 +263,8 @@ void Parser::parse_exp() {
  * ------------------------------------------
 */
 void Parser::parse_M() {
+    std::cout << "handling <M> BNF\n";
+
     // handle first part of rule
     parse_N();
 
@@ -269,6 +285,8 @@ void Parser::parse_M() {
  * ------------------------------------------
 */
 void Parser::parse_N() {
+    std::cout << "handling <N> BNF\n";
+
     // verify first token
     if (_token.instance == "~") {
         retrieve(); // retrieve next token
@@ -295,6 +313,8 @@ void Parser::parse_N() {
  * ------------------------------------------
 */
 void Parser::parse_R() {
+    std::cout << "handling <R> BNF\n";
+
     // verify first token
     if (_token.instance == "(") {
         retrieve();  // retrieve next token
@@ -322,6 +342,8 @@ void Parser::parse_R() {
  * ------------------------------------------
 */
 void Parser::parse_block() {
+    std::cout << "handling <block> BNF\n";
+
     // verify the opening curly brace
     if (_token.instance == "{")
         retrieve(); // retrieve next token
@@ -349,6 +371,8 @@ void Parser::parse_block() {
  * ------------------------------------------
 */
 void Parser::parse_in() {
+    std::cout << "handling <in> BNF\n";
+
     // verify first token
     if (_token.instance == "xin")
         retrieve(); // retrieve next token
@@ -382,6 +406,8 @@ void Parser::parse_in() {
  * ------------------------------------------
 */
 void Parser::parse_out() {
+    std::cout << "handling <out> BNF\n";
+
     // verify first token
     if (_token.instance == "xout")
         retrieve(); // retrieve next token
@@ -412,6 +438,8 @@ void Parser::parse_out() {
  * ------------------------------------------
 */
 void Parser::parse_if() {
+    std::cout << "handling <if> BNF\n";
+
     // verify first token
     if (_token.instance == "xcond")
         retrieve(); // retrieve next token
@@ -453,6 +481,8 @@ void Parser::parse_if() {
  * ------------------------------------------
 */
 void Parser::parse_loop() {
+    std::cout << "handling <loop> BNF\n";
+
     // verify first token
     if (_token.instance == "xloop")
         retrieve();
@@ -494,6 +524,8 @@ void Parser::parse_loop() {
  * ------------------------------------------
 */
 void Parser::parse_assign() {
+    std::cout << "handling <assign> BNF\n";
+
     // verify first token
     if (_token.instance == "xlet")
         retrieve();
@@ -525,6 +557,8 @@ void Parser::parse_assign() {
  * ------------------------------------------
 */
 void Parser::parse_RO() {
+    std::cout << "handling <RO> BNF\n";
+
     // check for the possible relational operators
     if (_token.instance == "<<" || _token.instance == ">>" ||
         _token.instance == "<" || _token.instance == ">" ||
@@ -544,6 +578,12 @@ void Parser::retrieve() {
     // get and set the next token reference
     _tokens results = scanner.scanner();
     _token = std::get<1>(results);
+
+    // skip comment tokens
+    if (_token.instance[0] == '$') {
+        _tokens results = scanner.scanner();
+        _token = std::get<1>(results);
+    }
 }
 
 
