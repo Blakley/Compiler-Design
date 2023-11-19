@@ -7,14 +7,25 @@
 
 # include "headers/parser.h"
 # include <iostream>
-# include <fstream>
+
+// nonterminal function pointer table
+using nonterminal_function = void (Parser::*)();
+
+std::map<std::string, nonterminal_function> nonterminals = {
+    {"xin"   , &Parser::parse_in},
+    {"xout"  , &Parser::parse_out},
+    {"xcond" , &Parser::parse_if},
+    {"xloop" , &Parser::parse_loop},
+    {"xlet"  , &Parser::parse_assign},
+};
+
 
 /**
  * ------------------------------------------
  *              Constructor
  * ------------------------------------------
 */
-Parser::Parser() {
+Parser::Parser(Scanner& scanner) : scanner(scanner) {
     // constructor function
 }
 
@@ -31,65 +42,89 @@ Parser::~Parser() {
 
 /**
  * ------------------------------------------
- * 
- * 
- * @param argc  : argument count
- * @param argv  : argument array
+ *             Parser handler
+ *   Determines which nonterminal is next
+ *     in the program verification
  * ------------------------------------------
 */
-void Parser::parse(int argc, char** argv) {
-    // handle invalid arguments detected by scanner    
-    scanner.arguments(argc, argv);
+Parser::nonterminal_function Parser::parse() {
+    // todo: 
+    // maybe return a function pointer to the next function we should call
 
-    // test scanner class
-    // scanner.tester();
+    // example return
+    return &Parser::parse_in;
+} 
 
+
+/**
+ * ------------------------------------------
+ *         Token parsing handler 
+ *    Starts the initial top-down parsing
+ * ------------------------------------------
+*/
+void Parser::begin() {
     // get a reference to the first token
     _tokens results = scanner.scanner();
     _token = std::get<1>(results);
 
-    // determine which nonterminal the token belongs to
-
-
-    if (_token.id == keyword_tk) {
-
-    }
-
-
-
-
-    // scanner.display(_token);
-    // // get tokens from file until EOF
-    // while (true) {
-    //     if (_token.id == eof_tk)
-    //         break;
-        
-    //     results = scanner.scanner();
-    //     _token = std::get<0>(results);
-
-    //     scanner.display(std::get<1>(results));
-    // }
-
-
-
-
-    // todo: Implementation for the overall parsing process
-    /*
-        1) start by reading the first token
-        and depending on what it is, call the appropriate 
-        nonterminal function in the parser class.
-    */
-   
+    // verify first token
+    if (_token.instance != "xopen")
+        error("xopen", _token.instance);
+    
+    // call non terminal function
+    parse_program();
 }
 
 
 /**
  * ------------------------------------------
+ *         Identifies Nonterminals
  * 
+ * @return : returns if the given token
+ *           is a nonterminal
+ * ------------------------------------------
+*/
+bool Parser::identify(token& t) {
+    // nonterminals are identifier tokens
+    if (t.id == identifier_tk || t.id == keyword_tk)
+        return true;
+
+    return false;
+}
+
+
+/**
+ * ------------------------------------------
+ *    Implementation for parsing <program>
+ *  
+ *  BNF production rule: 
+ *      <program> -> <vars> xopen <stats> xclose
  * ------------------------------------------
 */
 void Parser::parse_program() {
-    // Implementation for parsing <program>
+    std::cout << "About to start parsing <program>.\n";
+
+    // call function to parse <vars>
+    parse_vars();
+
+    // verify the opening parenthesis
+    if (_token.instance == "xopen")
+        retrieve(); // retrieve next token
+    else
+        error("xopen", _token.instance);
+
+    // call function to parse <stats>
+    parse_stats();
+
+    // verify the closing parenthesis
+    if (_token.instance == "xclose")
+        retrieve(); // retrieve next token
+    else
+        error("xclose", _token.instance);
+
+    // finished parsing
+    // todo: print print
+    std::cout << "Parsing <program> completed.\n";
 }
 
 
@@ -119,7 +154,7 @@ void Parser::parse_vars() {
  * ------------------------------------------
 */
 void Parser::parse_exp() {
-
+    // Implementation for parsing <exp>
 }
 
 
@@ -129,7 +164,7 @@ void Parser::parse_exp() {
  * ------------------------------------------
 */
 void Parser::parse_M() {
-    
+    // Implementation for parsing <M>
 }
 
 
@@ -139,7 +174,7 @@ void Parser::parse_M() {
  * ------------------------------------------
 */
 void Parser::parse_N() {
-
+    // Implementation for parsing <N>
 }
 
 
@@ -149,7 +184,7 @@ void Parser::parse_N() {
  * ------------------------------------------
 */
 void Parser::parse_R() {
-    
+    // Implementation for parsing <R>
 }
 
 
@@ -159,17 +194,24 @@ void Parser::parse_R() {
  * ------------------------------------------
 */
 void Parser::parse_stat() {
-
+    // Implementation for parsing <stat>
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <stats>
+ *  
+ *  BNF production rule: 
+ *      <stats> -> <stat> <mStat>
  * ------------------------------------------
 */
 void Parser::parse_stats() {
-    
+    // Implementation for parsing <stat>
+    parse_stat();
+
+    // Implementation for parsing <mStat>
+    parse_mStat();
 }
 
 
@@ -179,83 +221,255 @@ void Parser::parse_stats() {
  * ------------------------------------------
 */
 void Parser::parse_mStat() {
-
+    // Implementation for parsing <mStat>
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <block>
+ *  
+ *  BNF production rule: 
+ *      <block> -> { <vars> <stats> }
  * ------------------------------------------
 */
 void Parser::parse_block() {
-    
+    std::cout << "Token is {, parsing <block> nonterminal.\n";
+
+    // verify the opening curly brace
+    if (_token.instance == "{")
+        retrieve(); // retrieve next token
+    else
+        error("{", _token.instance);
+
+    // call function to parse <vars>
+    parse_vars();
+
+    // call function to parse <stats>
+    parse_stats();
+
+    // verify the closing curly brace
+    if (_token.instance == "}")
+        retrieve(); // retrieve next token
+    else
+        error("}", _token.instance);
+
+    // finished parsing nonterminal, call next function
+    Parser::nonterminal_function next = this->parse();
+    (this->*next)();
 }
+
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <in>
+ *  
+ *  BNF production rule: 
+ *      <in> -> xin >> identifier ; 
  * ------------------------------------------
 */
 void Parser::parse_in() {
-    /*
+
+    std::cout << "Token is xin, parsing <in> nonterminal.\n";
+
+    // verify first token
+    if (_token.instance == "xin")
+        retrieve(); // retrieve next token
+    else 
+        error("xin", _token.instance);
+
+    // verify next expected token
+    if (_token.instance == ">>") 
+        retrieve(); // retrieve next token
+    else
+        error(">>", _token.instance);
+
+    // verify next expected token
+    if (_token.id == identifier_tk)
+        retrieve(); // retrieve next token
+    else
+        error("identifier", _token.instance);
     
-        each of those functions will then do their logic
-        and at the end, call scanner again to parse the next given.
-        Similiar to this:
-
-        nonterminal <in> sudo code:
-        func in() {
-            if (token == xin)
-                token = scanner()
-            else 
-                error("xin expected but received token ..")
-
-            if (token == ">>")
-                token = scanner()
-            ekse
-                error("id expected but reeived token")
-
-            if (token == ;tk)
-                token = scanner()
-            else
-                error(";tk expected but received token")
-            
-            return
-        }
-    
-    */
+    // verify next expected token
+    if (_token.instance == ";") {
+        // finished parsing nonterminal, call next function
+        Parser::nonterminal_function next = this->parse();
+        (this->*next)(); 
+    }
+    else 
+        error(";", _token.instance);
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <out>
+ *  
+ *  BNF production rule: 
+ *      <out> -> xout << <exp> ;
  * ------------------------------------------
 */
 void Parser::parse_out() {
-    
+    std::cout << "Token is xout, parsing <out> nonterminal.\n";
+
+    // verify first token
+    if (_token.instance == "xout")
+        retrieve(); // retrieve next token
+    else 
+        error("xout", _token.instance);
+
+    // verify next expected token
+    if (_token.instance == "<<") 
+        retrieve(); // retrieve next token
+    else
+        error("<<", _token.instance);
+
+    // call function to parse <exp>
+    parse_exp();
+
+    // verify next expected token
+    if (_token.instance == ";") {
+        // finished parsing nonterminal, call next function
+        Parser::nonterminal_function next = this->parse();
+        (this->*next)(); 
+    }
+    else 
+        error(";", _token.instance);
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <if>
+ *  
+ *  BNF production rule: 
+ *      <if> -> xcond [ <exp> <RO> <exp> ] <stat>
  * ------------------------------------------
 */
 void Parser::parse_if() {
-    
+    std::cout << "Token is xcond, parsing <if> nonterminal.\n";
+
+    // verify first token
+    if (_token.instance == "xcond")
+        retrieve(); // retrieve next token
+    else 
+        error("xcond", _token.instance);
+
+    // verify next expected token
+    if (_token.instance == "[") 
+        retrieve(); // retrieve next token
+    else
+        error("[", _token.instance);
+
+    // call function to parse <exp>
+    parse_exp();
+
+    // call function to parse <RO>
+    parse_RO();
+
+    // call function to parse <exp>
+    parse_exp();
+
+    // verify next expected token
+    if (_token.instance == "]") 
+        retrieve(); // retrieve next token
+    else
+        error("]", _token.instance);
+
+    // call function to parse <stat>
+    parse_stat();
+
+    // finished parsing nonterminal, call next function
+    Parser::nonterminal_function next = this->parse();
+    (this->*next)(); 
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <loop>
+ *  
+ *  BNF production rule: 
+ *      <loop> -> xloop [ <exp> <RO> <exp> ] <stat>
  * ------------------------------------------
 */
 void Parser::parse_loop() {
-    
+    std::cout << "Token is xloop, parsing <loop> nonterminal.\n";
+
+    // verify first token
+    if (_token.instance == "xloop")
+        retrieve();
+    else
+        error("xloop", _token.instance);
+
+    // verify next expected token
+    if (_token.instance == "[")
+        retrieve();
+    else
+        error("[", _token.instance);
+
+    // call function to parse <exp>
+    parse_exp();
+
+    // call function to parse <RO>
+    parse_RO();
+
+    // call function to parse <exp>
+    parse_exp();
+
+    // verify next expected token
+    if (_token.instance == "]")
+        retrieve();
+    else
+        error("]", _token.instance);
+
+    // call function to parse <stat>
+    parse_stat();
+
+    // finished parsing nonterminal, call next function
+    Parser::nonterminal_function next = this->parse();
+    (this->*next)();
 }
+
+
+/**
+ * ------------------------------------------
+ *    Implementation for parsing <assign>
+ *  
+ *  BNF production rule: 
+ *      <assign> -> xlet identifier <exp> ;
+ * ------------------------------------------
+*/
+void Parser::parse_assign() {
+    std::cout << "Token is xlet, parsing <assign> nonterminal.\n";
+
+    // verify first token
+    if (_token.instance == "xlet")
+        retrieve();
+    else
+        error("xlet", _token.instance);
+
+    // verify next expected token
+    if (_token.id == identifier_tk)
+        retrieve();
+    else
+        error("identifier", _token.instance);
+
+    // call function to parse <exp>
+    parse_exp();
+
+    // verify next expected token
+    if (_token.instance == ";") {
+        retrieve();
+        
+        // finished parsing nonterminal, call next function
+        Parser::nonterminal_function next = this->parse();
+        (this->*next)();
+    }
+    else
+        error(";", _token.instance);
+}
+
 
 
 /**
@@ -264,29 +478,19 @@ void Parser::parse_loop() {
  * ------------------------------------------
 */
 void Parser::parse_RO() {
-    
+    // Implementation for parsing <RO>
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *    Handle updating the current token
  * ------------------------------------------
 */
-void Parser::parse_assign() {
-    
-}
-
-
-/**
- * ------------------------------------------
- *        Handle token matching
- * 
- * @param expected : the expected token
- * ------------------------------------------
-*/
-void Parser::match(std::string expected) {
-    // Implementation for matching a token
+void Parser::retrieve() {
+    // get and set the next token reference
+    _tokens results = scanner.scanner();
+    _token = std::get<1>(results);
 }
 
 
@@ -294,11 +498,14 @@ void Parser::match(std::string expected) {
  * ------------------------------------------
  *         Handle error parsing
  * 
- * @param message : provided error message
+ * @param expected : expected token
+ * @param value    : received token
  * ------------------------------------------
 */
-void Parser::error(std::string message) {
+void Parser::error(std::string expected, std::string value) {
     // Implementation for error handling
+    std::cerr << "Error, expected [" << expected << "] but received token: " << value << std::endl;
+    exit(EXIT_FAILURE);
 }
 
 
@@ -311,14 +518,12 @@ void Parser::error(std::string message) {
 
 /**
  * ------------------------------------------
- * 
+ *       Function to create a new node
  * 
  * @param label  :
  * ------------------------------------------
 */
 node* create(const std::string& label) {
-    // Function to create a new node
-
     node* newNode = new node;
     newNode->label = label;
     return newNode;
@@ -327,27 +532,28 @@ node* create(const std::string& label) {
 
 /**
  * ------------------------------------------
- * 
+ *   Function to add a new child to a node
  * 
  * @param parent :
  * @param child  :
  * ------------------------------------------
 */
 void new_child(node* parent, node* child) {
-    // Function to add a new child to a node
     parent->children.push_back(child);
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *   Function to add a new token to a node
  * 
  * @param node  :
  * @param token :
  * ------------------------------------------
 */
 void new_token(node* node, const std::string& token) {
-    // Function to add a new token to a node
     node->tokens.push_back(token);
 }
+
+
+

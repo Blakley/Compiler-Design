@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/16/2023
+    Date: 11/18/2023
     Description: 
         Parser header file recursive decent top-down parser
 */
@@ -15,15 +15,15 @@
 // Recursive decent: top-down parser parser class
 class Parser {
     private:
-        // reference to current token
-        token _token;
-        
-        // scanner reference
-        Scanner scanner;
+        // Define function pointer type
+        typedef void (Parser::*nonterminal_function)();
+
+        token _token;     // reference to current token
+        Scanner& scanner; // scanner reference
 
     public:
-        Parser();   // constructor
-        ~Parser();  // destructor
+        ~Parser();                  // destructor
+        Parser(Scanner& scanner);   // constructor
         
         void parse_program();  // 
         void parse_varsList(); //
@@ -48,9 +48,11 @@ class Parser {
         void parse_RO();     //  
         void parse_assign(); //
 
-        void parse(int a, char** v);      // parser entry point
-        void match(std::string expected); // determine if the token is correct
-        void error(std::string message);  // parser error handler 
+        nonterminal_function parse();               // parser handler           
+        void begin();                               // parser entry point
+        void retrieve();                            // get the next token
+        bool identify(token& t);                    // returns if the token is a nonterminal
+        void error(std::string e, std::string v);   // parser error handler 
 };
 
 # endif // PARSER_H
