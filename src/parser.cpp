@@ -269,7 +269,7 @@ void Parser::parse_M() {
  * ------------------------------------------
 */
 void Parser::parse_N() {
-    // check for unary minus
+    // verify first token
     if (_token.instance == "~") {
         retrieve(); // retrieve next token
         parse_N();  // parse the next <N>
@@ -295,7 +295,7 @@ void Parser::parse_N() {
  * ------------------------------------------
 */
 void Parser::parse_R() {
-    // handle first case
+    // verify first token
     if (_token.instance == "(") {
         retrieve();  // retrieve next token
         parse_exp(); // parse the enclosed <exp>
@@ -339,6 +339,7 @@ void Parser::parse_block() {
         error("}", _token.instance);
 }
 
+
 /**
  * ------------------------------------------
  *    Implementation for parsing <in>
@@ -381,8 +382,6 @@ void Parser::parse_in() {
  * ------------------------------------------
 */
 void Parser::parse_out() {
-    std::cout << "Token is xout, parsing <out> nonterminal.\n";
-
     // verify first token
     if (_token.instance == "xout")
         retrieve(); // retrieve next token
@@ -399,13 +398,7 @@ void Parser::parse_out() {
     parse_exp();
 
     // verify next expected token
-    if (_token.instance == ";") {
-        // finished parsing nonterminal, call next function
-        // Parser::nonterminal_function next = this->parse();
-        // (this->*next)(); 
-        return;
-    }
-    else 
+    if (_token.instance != ";")
         error(";", _token.instance);
 }
 
@@ -419,8 +412,6 @@ void Parser::parse_out() {
  * ------------------------------------------
 */
 void Parser::parse_if() {
-    std::cout << "Token is xcond, parsing <if> nonterminal.\n";
-
     // verify first token
     if (_token.instance == "xcond")
         retrieve(); // retrieve next token
@@ -450,10 +441,6 @@ void Parser::parse_if() {
 
     // call function to parse <stat>
     parse_stat();
-
-    // // finished parsing nonterminal, call next function
-    // Parser::nonterminal_function next = this->parse();
-    // (this->*next)(); 
 }
 
 
@@ -466,8 +453,6 @@ void Parser::parse_if() {
  * ------------------------------------------
 */
 void Parser::parse_loop() {
-    std::cout << "Token is xloop, parsing <loop> nonterminal.\n";
-
     // verify first token
     if (_token.instance == "xloop")
         retrieve();
@@ -497,10 +482,6 @@ void Parser::parse_loop() {
 
     // call function to parse <stat>
     parse_stat();
-
-    // // finished parsing nonterminal, call next function
-    // Parser::nonterminal_function next = this->parse();
-    // (this->*next)();
 }
 
 
@@ -513,8 +494,6 @@ void Parser::parse_loop() {
  * ------------------------------------------
 */
 void Parser::parse_assign() {
-    std::cout << "Token is xlet, parsing <assign> nonterminal.\n";
-
     // verify first token
     if (_token.instance == "xlet")
         retrieve();
@@ -531,25 +510,28 @@ void Parser::parse_assign() {
     parse_exp();
 
     // verify next expected token
-    if (_token.instance == ";") {
-        retrieve();
-        
-        // // finished parsing nonterminal, call next function
-        // Parser::nonterminal_function next = this->parse();
-        // (this->*next)();
-    }
-    else
-        error(";", _token.instance);
+    if (_token.instance != ";")
+        error(";", _token.instance); 
 }
 
 
 /**
  * ------------------------------------------
- * 
+ *    Implementation for parsing <RO>
+ *  
+ *  BNF production rule: 
+ *      <RO> -> << (one token) | >> (one token) | < | > | = | %
+ *      
  * ------------------------------------------
 */
 void Parser::parse_RO() {
-    // Implementation for parsing <RO>
+    // check for the possible relational operators
+    if (_token.instance == "<<" || _token.instance == ">>" ||
+        _token.instance == "<" || _token.instance == ">" ||
+        _token.instance == "=" || _token.instance == "%")
+        retrieve();  // consume the relational operator
+    else
+        error("relational operator", _token.instance);
 }
 
 
