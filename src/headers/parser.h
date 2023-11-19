@@ -23,7 +23,7 @@ class Parser {
         Parser(Scanner& scanner);   // constructor
         
         void parse_program();  // 
-        void parse_varsList(); //
+        void parse_varList();  //
         void parse_vars();     //
         
         void parse_exp();    // 

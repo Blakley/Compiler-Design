@@ -92,12 +92,12 @@ void Parser::parse_vars() {
         retrieve();
 
         if (_token.id == identifier_tk)    
-            parse_varsList();
+            parse_varList();
         else
             error("identifier", _token.instance);
     }
     else if (_token.id == identifier_tk)
-        parse_varsList();
+        parse_varList();
 
     // else, <vars> should be empty
 }
@@ -111,7 +111,7 @@ void Parser::parse_vars() {
  *      <varList> -> identifier : integer ; | identifier : integer <varList>
  * ------------------------------------------
 */
-void Parser::parse_varsList() {
+void Parser::parse_varList() {
     // check for the identifier
     if (_token.id == identifier_tk) {
         retrieve(); // retrieve next token
@@ -134,7 +134,7 @@ void Parser::parse_varsList() {
         }
         // no semicolon; optional <varList> follows
         else if (_token.id == identifier_tk) {
-            parse_varsList();
+            parse_varList();
         }
         // no semicolon or <varList>; 
         else
@@ -185,6 +185,7 @@ void Parser::parse_stats() {
     parse_stat();
 
     // parse additional statements (if any)
+    retrieve();
     parse_mStat();
 }
 
@@ -198,9 +199,6 @@ void Parser::parse_stats() {
  * ------------------------------------------
 */
 void Parser::parse_mStat() {
-    // retrieve next token
-    retrieve();
-
     // check if there are more statements
     if (_token.instance == "xin"   || _token.instance == "xout" || _token.instance == "{" 
     ||  _token.instance == "xcond" || _token.instance == "xloop" 
@@ -209,6 +207,7 @@ void Parser::parse_mStat() {
         parse_stat();
 
         // parse additional statements (if any)
+        retrieve();
         parse_mStat();
     } 
 
