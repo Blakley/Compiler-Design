@@ -666,7 +666,7 @@ void Parser::retrieve() {
 */
 void Parser::error(std::string expected, std::string value) {
     // Implementation for error handling
-    std::cerr << "Error, expected [" << expected << "] but received token: " << value << std::endl;
+    std::cerr << "Error, expected [ " << expected << " ] but received token: " << value << std::endl;
     exit(EXIT_FAILURE);
 }
 
