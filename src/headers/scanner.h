@@ -41,7 +41,6 @@ class Scanner {
         ~Scanner(); // destructor
 
         void arguments(int argc, char** argv);  // argument handler
-        void opener();                          // open input file
         void display(token& t);                 // outputs a token's description
 
         void validate(char c, token& t);            // verify token construction

@@ -21,8 +21,11 @@ int main(int argc, char** argv) {
     // handle input arguments
     scanner.arguments(argc, argv);
 
+    // get tree object
+    Tree tree;
+
     // get parser object
-    Parser parser(scanner);
+    Parser parser(scanner, tree);
 
     // being top-down parsing
     parser.begin();

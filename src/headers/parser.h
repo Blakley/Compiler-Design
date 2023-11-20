@@ -8,7 +8,7 @@
 # ifndef PARSER_H
 # define PARSER_H
 
-# include "node.h"
+# include "tree.h"
 # include "token.h"
 # include "scanner.h"
 
@@ -17,10 +17,11 @@ class Parser {
     private:
         token _token;     // Reference to the current token
         Scanner& scanner; // Scanner reference
+        Tree& tree;       // Tree reference
 
     public:
-        ~Parser();                  // Destructor
-        Parser(Scanner& scanner);   // Constructor
+        ~Parser();                          // Destructor
+        Parser(Scanner& scanner, Tree& t);  // Constructor
         
         void parse_program();       // Parse the main program
         void parse_varList();       // Parse variable list

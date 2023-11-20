@@ -14,7 +14,7 @@
  *              Constructor
  * ------------------------------------------
 */
-Parser::Parser(Scanner& scanner) : scanner(scanner) {
+Parser::Parser(Scanner& s, Tree& t) : scanner(s), tree(t) {
     // constructor function
 }
 
@@ -50,6 +50,9 @@ void Parser::begin() {
  * ------------------------------------------
 */
 void Parser::parse_program() {
+    // have a reference to the root node
+    // have a reference to the previous node
+
     std::cout << "handling <program> BNF\n";
 
     // call function to parse <vars>
@@ -670,48 +673,3 @@ void Parser::error(std::string expected, std::string value) {
 }
 
 
-/* 
-    =========================================== 
-           Node function declarations
-    ===========================================
-*/
-
-
-/**
- * ------------------------------------------
- *       Function to create a new node
- * 
- * @param label  :
- * ------------------------------------------
-*/
-node* create(const std::string& label) {
-    node* newNode = new node;
-    newNode->label = label;
-    return newNode;
-}
-
-
-/**
- * ------------------------------------------
- *   Function to add a new child to a node
- * 
- * @param parent :
- * @param child  :
- * ------------------------------------------
-*/
-void new_child(node* parent, node* child) {
-    parent->children.push_back(child);
-}
-
-
-/**
- * ------------------------------------------
- *   Function to add a new token to a node
- * 
- * @param node  :
- * @param token :
- * ------------------------------------------
-*/
-void new_token(node* node, const std::string& token) {
-    node->tokens.push_back(token);
-}
