@@ -30,5 +30,8 @@ int main(int argc, char** argv) {
     // being top-down parsing
     parser.begin();
 
+    // print tree nodes
+    tree.traverse(nullptr);
+
     return 0;
 }

@@ -113,6 +113,10 @@ size_t Tree::tree_size() const {
  * @param node : current node
  * ------------------------------------------
 */
-void Tree::traverse(Node* node) {
-    std::cout << "print preorder traversal\n";
+void Tree::traverse(Node* node = nullptr) {
+    if (node == nullptr)
+        node = root;
+
+    // perform traversal
+    std::cout << "\nprint preorder traversal\n";
 }
