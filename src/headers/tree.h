@@ -17,24 +17,21 @@ struct Node {
     std::vector<std::string> tokens;  // store relevant tokens processed in the function
     std::vector<Node*> children;      // children for each nonterminal in a production
 
-    Node(const std::string& l) : label(l) {}
-
-    ~Node() {
-        for (auto child : children) {
-            delete child;
-        }
-    }
+    Node(const std::string& l) : label(l) {} // constructor
+    ~Node() {} // destructor
 };
 
 class Tree {
     private:
-        Node* root;     // root node
-        Node* previous; // keep track of the previous node
-        size_t size;    // number of nodes in tree
+        Node* root;      // root node
+        Node* previous;  // keep track of the previous node
+        size_t size;     // number of nodes in tree
 
     public:
         Tree();
         ~Tree();
+
+        Node* reference; // reference to a node
 
         void new_node(const std::string& label);              // create a new node
         void new_child(Node* parent, Node* child);            // add a child to a node

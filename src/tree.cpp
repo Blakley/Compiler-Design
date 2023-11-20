@@ -12,7 +12,10 @@
  *              Constructor
  * ------------------------------------------
 */
-Tree::Tree() : root(nullptr), previous(nullptr) {}
+Tree::Tree() : root(nullptr), previous(nullptr) {
+    // set tree size
+    size = 0;
+}
 
 
 /**
@@ -119,4 +122,5 @@ void Tree::traverse(Node* node = nullptr) {
 
     // perform traversal
     std::cout << "\nprint preorder traversal\n";
+    std::cout << "Tree size: " << size << " nodes\n";
 }

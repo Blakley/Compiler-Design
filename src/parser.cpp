@@ -50,14 +50,17 @@ void Parser::begin() {
  * ------------------------------------------
 */
 void Parser::parse_program() {
-    // have a reference to the root node
-    // have a reference to the previous node
 
     std::cout << "handling <program> BNF\n";
+    
+    // create first node (root)
+    tree.new_node("<program>");
 
     // call function to parse <vars>
+    // add child <vars> to parent <program>
     retrieve();
     parse_vars();
+    tree.new_child(tree.root_node(), tree.reference);
 
     // verify the opening parenthesis
     if (_token.instance != "xopen")
@@ -66,8 +69,10 @@ void Parser::parse_program() {
     std::cout << "consumed <xopen>\n";
 
     // call function to parse <stats>
+    // add child <stats> to parent <program>
     retrieve(); 
     parse_stats();
+    tree.new_child(tree.root_node(), tree.reference);
 
     // verify the closing parenthesis
     if (_token.instance != "xclose")
@@ -80,8 +85,6 @@ void Parser::parse_program() {
         error("EOF", _token.instance);
 
     // finished parsing
-    // implement nodes to print tree
-    // todo: print tree using inorder traversal
     std::cout << "\nParsing <program> completed.\n";
 }
 
@@ -97,6 +100,24 @@ void Parser::parse_program() {
 void Parser::parse_vars() {
     std::cout << "handling <vars> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<vars>");
+
+    // get a reference to the created node 
+    Node* vars_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // verify token value
     if (_token.instance == "xdata") {
         // the examples show an identifer first
@@ -105,17 +126,25 @@ void Parser::parse_vars() {
 
         if (_token.id == identifier_tk) {
             std::cout << "consumed: " << _token.instance << " token\n";
+
+            // add child <varList> to parent <vars>
             parse_varList();
+            tree.new_child(vars_node, tree.reference);
         }
         else
             error("identifier", _token.instance);
     }
     else if (_token.id == identifier_tk) {
         std::cout << "consumed: " << _token.instance << " token\n";
-        parse_varList();
-    }
 
+        // add child <varList> to parent <vars>
+        parse_varList();
+        tree.new_child(vars_node, tree.reference);
+    }
     // else, <vars> should be empty
+
+    // store reference to <vars> to be added as a child
+    tree.reference = vars_node;
 }
 
 
@@ -129,6 +158,24 @@ void Parser::parse_vars() {
 */
 void Parser::parse_varList() {
     std::cout << "handling <varList> BNF\n";
+
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<varList>");
+
+    // get a reference to the created node 
+    Node* varList_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
 
     // check for the identifier
     if (_token.id == identifier_tk) {
@@ -158,7 +205,10 @@ void Parser::parse_varList() {
         // no semicolon; optional <varList> follows
         else if (_token.id == identifier_tk) {
             std::cout << "consumed: " << _token.instance << " token\n";
+
+            // add child <varList> to parent <varList>
             parse_varList();
+            tree.new_child(varList_node, tree.reference);
         }
         // no semicolon or <varList>; 
         else
@@ -166,6 +216,9 @@ void Parser::parse_varList() {
     } 
     else
         error("identifier", _token.instance);
+
+    // store reference to <varList> to be added as a child
+    tree.reference = varList_node;
 }
 
 
@@ -180,21 +233,51 @@ void Parser::parse_varList() {
 void Parser::parse_stat() {
     std::cout << "handling <stat> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<stat>");
+
+    // get a reference to the created node 
+    Node* stat_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     if (_token.instance == "xin")
         parse_in();
+
     else if (_token.instance == "xout")
         parse_out();
+
     else if (_token.instance == "{") 
         parse_block();
+
     else if (_token.instance == "xcond") 
         parse_if();
+
     else if (_token.instance == "xloop") 
         parse_loop();
+    
     else if (_token.instance == "xlet") 
         parse_assign();
+    
     else
         // handle error: unexpected token for <stat>
         error("statement", _token.instance);
+
+    // add child <from above> to parent <stat>
+    tree.new_child(stat_node, tree.reference);
+
+    // store reference to <stat> to be added as a child
+    tree.reference = stat_node;
 }
 
 
@@ -209,12 +292,37 @@ void Parser::parse_stat() {
 void Parser::parse_stats() {
     std::cout << "handling <stats> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<stats>");
+
+    // get a reference to the created node 
+    Node* stats_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // parse a single statement
+    // add child <stat> to parent <stats>
     parse_stat();
+    tree.new_child(stats_node, tree.reference);
 
     // parse additional statements (if any)
+    // add child <mStat> to parent <stats>
     retrieve();
     parse_mStat();
+    tree.new_child(stats_node, tree.reference);
+
+    // store reference to <stats> to be added as a child
+    tree.reference = stats_node;
 }
 
 
@@ -229,20 +337,44 @@ void Parser::parse_stats() {
 void Parser::parse_mStat() {
     std::cout << "handling <mStat> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<mStat>");
+
+    // get a reference to the created node 
+    Node* mStat_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // check if there are more statements
     if (_token.instance == "xin"   || _token.instance == "xout" || _token.instance == "{" 
     ||  _token.instance == "xcond" || _token.instance == "xloop" 
     ||  _token.instance == "xlet") {
 
         // parse another statement
+        // add child <stat> to parent <mStat>
         parse_stat();
+        tree.new_child(mStat_node, tree.reference);
 
         // parse additional statements (if any)
+        // add child <mStat> to parent <mStat>
         retrieve();
         parse_mStat();
+        tree.new_child(mStat_node, tree.reference);
     } 
-
     // else, <mStat> should be empty
+
+    // store reference to <mStat> to be added as a child
+    tree.reference = mStat_node;
 }
 
 
@@ -260,16 +392,42 @@ void Parser::parse_mStat() {
 void Parser::parse_exp() {
     std::cout << "handling <exp> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<exp>");
+
+    // get a reference to the created node 
+    Node* exp_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // handle first part of rule
+    // add child <M> to parent <exp>
     parse_M();
+    tree.new_child(exp_node, tree.reference);
 
     // check for division, multiplication, addition, subtraction, and ~
     while (_token.instance == "/" || _token.instance == "*"
         || _token.instance == "+" || _token.instance == "-" || _token.instance == "~") {
         std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();  // retrieve next token
+
+        // add child <M> to parent <exp>
         parse_M();
+        tree.new_child(exp_node, tree.reference);
     }
+
+    // store reference to <exp> to be added as a child
+    tree.reference = exp_node;
 }
 
 
@@ -285,15 +443,42 @@ void Parser::parse_exp() {
 void Parser::parse_M() {
     std::cout << "handling <M> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<M>");
+
+    // get a reference to the created node 
+    Node* m_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // handle first part of rule
+    // add child <N> to parent <M>
     parse_N();
+    tree.new_child(m_node, tree.reference);
 
     // check for addition
     while (_token.instance == "+") {
         std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
-        parse_M();  // parse the next <M>
+
+        // parse the next <M>
+        // add child <M> to parent <M>
+        parse_M();  
+        tree.new_child(m_node, tree.reference);
     }
+
+    // store reference to <M> to be added as a child
+    tree.reference = m_node;
 }
 
 
@@ -308,14 +493,39 @@ void Parser::parse_M() {
 void Parser::parse_N() {
     std::cout << "handling <N> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<N>");
+
+    // get a reference to the created node 
+    Node* n_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // verify first token
     if (_token.instance == "~") {
         std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
-        parse_N();  // parse the next <N>
+
+        // parse the next <N>
+        // add child <N> to parent <N>
+        parse_N();  
+        tree.new_child(n_node, tree.reference);
     } 
     else {
-        parse_R();  // parse <R>
+        // parse <R>
+        // add child <R> to parent <N>
+        parse_R();  
+        tree.new_child(n_node, tree.reference);
 
         // check for subtraction
         bool unary = false;
@@ -326,9 +536,15 @@ void Parser::parse_N() {
         }
 
         // handle: <R> - <N> case
-        if (unary)
+        if (unary) {
+            // add child <N> to parent <N>
             parse_N();
+            tree.new_child(n_node, tree.reference);
+        }
     }
+
+    // store reference to <N> to be added as a child
+    tree.reference = n_node;
 }
 
 
@@ -343,11 +559,33 @@ void Parser::parse_N() {
 void Parser::parse_R() {
     std::cout << "handling <R> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<R>");
+
+    // get a reference to the created node 
+    Node* r_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // verify first token
     if (_token.instance == "(") {
         std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();  // retrieve next token
-        parse_exp(); // parse the enclosed <exp>
+
+        // parse the enclosed <exp>
+        // add child <exp> to parent <R>
+        parse_exp(); 
+        tree.new_child(r_node, tree.reference);
 
         // verify and consume the closing parenthesis
         if (_token.instance == ")") {
@@ -363,6 +601,10 @@ void Parser::parse_R() {
     }
     else 
         error("identifier, integer, or (", _token.instance);
+
+
+    // store reference to <R> to be added as a child
+    tree.reference = r_node;
 }
 
 
@@ -377,6 +619,24 @@ void Parser::parse_R() {
 void Parser::parse_block() {
     std::cout << "handling <block> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<block>");
+
+    // get a reference to the created node 
+    Node* block_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // verify the opening curly brace
     if (_token.instance == "{") {
         std::cout << "consumed: " << _token.instance << " token\n";
@@ -386,16 +646,24 @@ void Parser::parse_block() {
         error("{", _token.instance);
 
     // call function to parse <vars>
+    // add child <vars> to parent <block>
     parse_vars();
+    tree.new_child(block_node, tree.reference);
 
     // call function to parse <stats>
+    // add child <stats> to parent <block>
     parse_stats();
+    tree.new_child(block_node, tree.reference);
 
     // verify the closing curly brace
     if (_token.instance != "}")
         error("}", _token.instance);
 
     std::cout << "consumed: " << _token.instance << " token\n";
+
+
+    // store reference to <block> to be added as a child
+    tree.reference = block_node;
 }
 
 
@@ -409,6 +677,24 @@ void Parser::parse_block() {
 */
 void Parser::parse_in() {
     std::cout << "handling <in> BNF\n";
+
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<in>");
+
+    // get a reference to the created node 
+    Node* in_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
 
     // verify first token
     if (_token.instance == "xin") {
@@ -439,6 +725,9 @@ void Parser::parse_in() {
         error(";", _token.instance);
 
     std::cout << "consumed: " << _token.instance << " token\n";
+
+    // store reference to <in> to be added as a child
+    tree.reference = in_node;
 }
 
 
@@ -452,6 +741,24 @@ void Parser::parse_in() {
 */
 void Parser::parse_out() {
     std::cout << "handling <out> BNF\n";
+
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<out>");
+
+    // get a reference to the created node 
+    Node* out_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
 
     // verify first token
     if (_token.instance == "xout") {
@@ -470,13 +777,18 @@ void Parser::parse_out() {
         error("<<", _token.instance);
 
     // call function to parse <exp>
+    // add child <exp> to parent <out>
     parse_exp();
+    tree.new_child(out_node, tree.reference);
 
     // verify next expected token
     if (_token.instance != ";") 
         error(";", _token.instance);
 
     std::cout << "consumed: " << _token.instance << " token\n";
+
+    // store reference to <out> to be added as a child
+    tree.reference = out_node;
 }
 
 
@@ -490,6 +802,24 @@ void Parser::parse_out() {
 */
 void Parser::parse_if() {
     std::cout << "handling <if> BNF\n";
+
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<if>");
+
+    // get a reference to the created node 
+    Node* if_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
 
     // verify first token
     if (_token.instance == "xcond") {
@@ -508,13 +838,19 @@ void Parser::parse_if() {
         error("[", _token.instance);
 
     // call function to parse <exp>
+    // add child <exp> to parent <if>
     parse_exp();
+    tree.new_child(if_node, tree.reference);
 
     // call function to parse <RO>
+    // add child <RO> to parent <if>
     parse_RO();
+    tree.new_child(if_node, tree.reference);
 
     // call function to parse <exp>
+    // add child <exp> to parent <if>
     parse_exp();
+    tree.new_child(if_node, tree.reference);
 
     // verify next expected token
     if (_token.instance == "]") {
@@ -525,7 +861,12 @@ void Parser::parse_if() {
         error("]", _token.instance);
 
     // call function to parse <stat>
+    // add child <stat> to parent <if>
     parse_stat();
+    tree.new_child(if_node, tree.reference);
+
+    // store reference to <if> to be added as a child
+    tree.reference = if_node;
 }
 
 
@@ -539,6 +880,24 @@ void Parser::parse_if() {
 */
 void Parser::parse_loop() {
     std::cout << "handling <loop> BNF\n";
+
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<loop>");
+
+    // get a reference to the created node 
+    Node* loop_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
 
     // verify first token
     if (_token.instance == "xloop") {
@@ -557,13 +916,19 @@ void Parser::parse_loop() {
         error("[", _token.instance);
 
     // call function to parse <exp>
+    // add child <exp> to parent <loop>
     parse_exp();
+    tree.new_child(loop_node, tree.reference);
 
     // call function to parse <RO>
+    // add child <RO> to parent <loop>
     parse_RO();
+    tree.new_child(loop_node, tree.reference);
 
     // call function to parse <exp>
+    // add child <exp> to parent <loop>
     parse_exp();
+    tree.new_child(loop_node, tree.reference);
 
     // verify next expected token
     if (_token.instance == "]") {
@@ -574,7 +939,12 @@ void Parser::parse_loop() {
         error("]", _token.instance);
 
     // call function to parse <stat>
+    // add child <stat> to parent <loop>
     parse_stat();
+    tree.new_child(loop_node, tree.reference);
+
+    // store reference to <loop> to be added as a child
+    tree.reference = loop_node;
 }
 
 
@@ -588,6 +958,24 @@ void Parser::parse_loop() {
 */
 void Parser::parse_assign() {
     std::cout << "handling <assign> BNF\n";
+
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<assign>");
+
+    // get a reference to the created node 
+    Node* assign_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
 
     // verify first token
     if (_token.instance == "xlet") {
@@ -606,13 +994,18 @@ void Parser::parse_assign() {
         error("identifier", _token.instance);
 
     // call function to parse <exp>
+    // add child <exp> to parent <assign>
     parse_exp();
+    tree.new_child(assign_node, tree.reference);
 
     // verify next expected token
     if (_token.instance != ";")
         error(";", _token.instance); 
 
     std::cout << "consumed: " << _token.instance << " token\n";
+
+    // store reference to <assign> to be added as a child
+    tree.reference = assign_node;
 }
 
 
@@ -628,6 +1021,24 @@ void Parser::parse_assign() {
 void Parser::parse_RO() {
     std::cout << "handling <RO> BNF\n";
 
+    /**
+     * ======================
+     *  handle node storing
+     * ======================
+    */
+
+    // create new node
+    tree.new_node("<RO>");
+
+    // get a reference to the created node 
+    Node* RO_node = tree.previous_node();
+
+    /**
+     * ======================
+     *    handle parsing
+     * ======================
+    */
+
     // check for the possible relational operators
     if (_token.instance == "<<" || _token.instance == ">>" ||
         _token.instance == "<" || _token.instance == ">" ||
@@ -637,6 +1048,9 @@ void Parser::parse_RO() {
     }
     else
         error("relational operator", _token.instance);
+
+    // store reference to <RO> to be added as a child
+    tree.reference = RO_node;
 }
 
 
