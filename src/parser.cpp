@@ -38,6 +38,7 @@ Parser::~Parser() {
 void Parser::begin() {
     // begin parsing the input program
     parse_program();
+    // scanner.tester();
 }
 
 
@@ -230,7 +231,6 @@ void Parser::parse_mStat() {
     if (_token.instance == "xin"   || _token.instance == "xout" || _token.instance == "{" 
     ||  _token.instance == "xcond" || _token.instance == "xloop" 
     ||  _token.instance == "xlet") {
-        std::cout << "consumed: " << _token.instance << " token\n";
 
         // parse another statement
         parse_stat();
@@ -316,11 +316,16 @@ void Parser::parse_N() {
         parse_R();  // parse <R>
 
         // check for subtraction
+        bool unary = false;
         while (_token.instance == "-") {
             std::cout << "consumed: " << _token.instance << " token\n";
+            unary = true;
             retrieve(); // retrieve next token
-            parse_N();  // parse the next <N>
         }
+
+        // handle: <R> - <N> case
+        if (unary)
+            parse_N();
     }
 }
 
