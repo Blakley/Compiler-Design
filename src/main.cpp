@@ -2,7 +2,8 @@
     Name: Anthony Blakley
     Date: 11/18/2023
     Description: 
-        
+        This program utilizes a recursive descent top-down 
+        parser to analyze a given programming
 */
 
 # include "headers/scanner.h"
