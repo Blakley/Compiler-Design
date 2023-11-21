@@ -78,28 +78,28 @@ void Tree::new_token(Node* node, token* t) {
 
     switch (id) {
         case eof_tk:
-            token_string = "eof: " + instance + " : " + line;
+            token_string = "eof: " + instance + " line: " + line;
             break;
         case space_tk:
-            token_string = "space: " + instance + " : " + line;
+            token_string = "space: " + instance + " line: " + line;
             break;
         case comment_tk:
-            token_string = "comment: " + instance + " : " + line;
+            token_string = "comment: " + instance + " line: " + line;
             break;
         case integer_tk:
-            token_string = "integer: " + instance + " : " + line;
+            token_string = "integer: " + instance + " line: " + line;
             break;
         case keyword_tk:
-            token_string = "keyword: " + instance + " : " + line;
+            token_string = "keyword: " + instance + " line: " + line;
             break;
         case operator_tk:
-            token_string = "operator: " + instance + " : " + line;
+            token_string = "operator: " + instance + " line: " + line;
             break;
         case delimiter_tk:
-            token_string = "delimiter: " + instance + " : " + line;
+            token_string = "delimiter: " + instance + " line: " + line;
             break;
         case identifier_tk:
-            token_string = "identifier: " + instance + " : " + line;
+            token_string = "identifier: \"" + instance + "\" line: " + line;
             break;
         default:
             // handle unknown token type
@@ -170,7 +170,12 @@ void Tree::traverse(Node* node, int indentation) {
     for (int i = 0; i < indentation; ++i)
         std::cout << "    ";
     
-    std::cout << node->label << "\n";
+    // Print both the label and tokens of the current node on the same line
+    std::cout << node->label << " ";
+    for (const auto& token : node->tokens) {
+        std::cout << token << " ";
+    }
+    std::cout << "\n";
 
     // Traverse children in preorder with increased indentation
     for (auto child : node->children)

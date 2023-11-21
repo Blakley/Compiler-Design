@@ -119,7 +119,10 @@ void Parser::parse_vars() {
     */
 
     // verify token value
-    if (_token.instance == "xdata") {
+    if (_token.instance == "xdata") {        
+        // add "xdata" token to <vars> node
+        tree.new_token(vars_node, &_token);
+
         // the examples show an identifer first
         // but handle the case where its xdata then the identifer
         retrieve();
@@ -179,6 +182,9 @@ void Parser::parse_varList() {
 
     // check for the identifier
     if (_token.id == identifier_tk) {
+        // add "identifier" token to <varList> node
+        tree.new_token(varList_node, &_token);
+
         retrieve(); // retrieve next token
 
         // verify the colon
@@ -192,6 +198,10 @@ void Parser::parse_varList() {
         // verify the integer
         if (_token.id == integer_tk) {
             std::cout << "consumed: " << _token.instance << " token\n";
+
+            // add "integer" token to <varList> node
+            tree.new_token(varList_node, &_token);
+
             retrieve(); // retrieve next token
         }
         else
