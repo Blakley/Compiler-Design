@@ -123,8 +123,8 @@ void Parser::parse_vars() {
         // add "xdata" token to <vars> node
         tree.new_token(vars_node, &_token);
 
-        // the examples show an identifer first
-        // but handle the case where its xdata then the identifer
+        // the examples show an identifier first
+        // but handle the case where its xdata then the identifier
         retrieve();
 
         if (_token.id == identifier_tk) {
@@ -608,7 +608,7 @@ void Parser::parse_R() {
     else if (_token.id == identifier_tk || _token.id == integer_tk) {
         std::cout << "consumed: " << _token.instance << " token\n";
 
-        // add "identifer" or "integer" token to <R> node
+        // add "identifier" or "integer" token to <R> node
         tree.new_token(r_node, &_token);
 
         retrieve(); // retrieve next token
@@ -730,7 +730,7 @@ void Parser::parse_in() {
     if (_token.id == identifier_tk) {
         std::cout << "consumed: " << _token.instance << " token\n";
 
-        // add "identifer" token to <in> node
+        // add "identifier" token to <in> node
         tree.new_token(in_node, &_token);
 
         retrieve(); // retrieve next token
@@ -1007,7 +1007,7 @@ void Parser::parse_assign() {
     if (_token.id == identifier_tk) {
         std::cout << "consumed: " << _token.instance << " token\n";
 
-        // add "identifer" token to <assign> node
+        // add "identifier" token to <assign> node
         tree.new_token(assign_node, &_token);
 
         retrieve();

@@ -24,7 +24,29 @@ Tree::Tree() : root(nullptr), previous(nullptr) {
  * ------------------------------------------
 */
 Tree::~Tree() {
-    delete root;
+    // remove all children of root
+    if (root != nullptr)
+        clean(root);
+}
+
+
+/**
+ * ------------------------------------------
+ *          Destructor Helper
+ * 
+ * @param node : current node
+ * ------------------------------------------
+*/
+void Tree::clean(Node* node) {
+    if (node == nullptr)
+        return;
+
+    // delete children recursively
+    for (auto child : node->children)
+        clean(child);
+
+    // delete the current node
+    delete node;
 }
 
 
@@ -80,9 +102,6 @@ void Tree::new_token(Node* node, token* t) {
     switch (id) {
         case integer_tk:
             token_string = "integer: " + instance + " line: " + line;
-            break;
-        case operator_tk:
-            token_string = "operator: " + instance + " line: " + line;
             break;
         case identifier_tk:
             token_string = "identifier: \"" + instance + "\" line: " + line;
@@ -152,18 +171,18 @@ void Tree::traverse(Node* node, int indentation) {
         std::cout << line << "\n";
     }
 
-    // print tokens of the current node with indentation
+    // print tokens of the current node
     for (int i = 0; i < indentation; ++i)
         std::cout << "    ";
     
-    // Print both the label and tokens of the current node on the same line
+    // print both the label and tokens of the current node on the same line
     std::cout << node->label << " ";
     for (const auto& token : node->tokens) {
         std::cout << token << " ";
     }
     std::cout << "\n";
 
-    // Traverse children in preorder with increased indentation
+    // traverse children in preorder with increased indentation
     for (auto child : node->children)
         traverse(child, indentation + 1);
 }

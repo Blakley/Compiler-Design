@@ -31,9 +31,10 @@ class Tree {
     public:
         Tree();
         ~Tree();
-
+        
         Node* reference; // reference to a node
 
+        void clean(Node* node); // destructor help
         void new_node(const std::string& label);   // create a new node
         void new_child(Node* parent, Node* child); // add a child to a node
         void new_token(Node* node, token* t);      // add a token to a node
