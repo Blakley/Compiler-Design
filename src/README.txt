@@ -5,11 +5,15 @@
         ./P2 tests/good_input/P2_good<file number>
         example: 
             ./P2 tests/good_input/P2_good10
+        or 
+            /P2 < tests/good_input/P2_good10.f23
 
     2. bad input programs:  (10 total from lecture)
         ./P2 tests/bad_input/P2_bad<file number>
         example: 
             ./P2 tests/bad_input/P2_bad1
+        or
+            ./P2 < tests/bad_input/P2_bad1.f23
 
 # Program structure
     The source files, excluding main.cpp, are stored in the "src" directory
