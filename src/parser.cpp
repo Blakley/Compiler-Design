@@ -607,6 +607,10 @@ void Parser::parse_R() {
     } 
     else if (_token.id == identifier_tk || _token.id == integer_tk) {
         std::cout << "consumed: " << _token.instance << " token\n";
+
+        // add "identifer" or "integer" token to <R> node
+        tree.new_token(r_node, &_token);
+
         retrieve(); // retrieve next token
     }
     else 

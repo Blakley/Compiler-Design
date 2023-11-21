@@ -76,27 +76,13 @@ void Tree::new_token(Node* node, token* t) {
     // create the token string
     std::string token_string = "";
 
+    // handle 
     switch (id) {
-        case eof_tk:
-            token_string = "eof: " + instance + " line: " + line;
-            break;
-        case space_tk:
-            token_string = "space: " + instance + " line: " + line;
-            break;
-        case comment_tk:
-            token_string = "comment: " + instance + " line: " + line;
-            break;
         case integer_tk:
             token_string = "integer: " + instance + " line: " + line;
             break;
-        case keyword_tk:
-            token_string = "keyword: " + instance + " line: " + line;
-            break;
         case operator_tk:
             token_string = "operator: " + instance + " line: " + line;
-            break;
-        case delimiter_tk:
-            token_string = "delimiter: " + instance + " line: " + line;
             break;
         case identifier_tk:
             token_string = "identifier: \"" + instance + "\" line: " + line;
