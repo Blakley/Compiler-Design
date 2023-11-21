@@ -5,7 +5,7 @@
         Tree function declarations
 */
 
-# include "headers/tree.h"
+# include "../headers/tree.h"
 
 /**
  * ------------------------------------------

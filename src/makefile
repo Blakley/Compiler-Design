@@ -2,9 +2,9 @@ CC = g++ -std=c++11
 CFLAGS = -Wall -g
 
 MAIN_SRC = main.cpp
-TREE_SRC = tree.cpp
-PARSER_SRC = parser.cpp
-SCANNER_SRC = scanner.cpp
+TREE_SRC = src/tree.cpp
+PARSER_SRC = src/parser.cpp
+SCANNER_SRC = src/scanner.cpp
 EXE = P2
 
 # List of header files

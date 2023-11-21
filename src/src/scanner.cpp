@@ -5,7 +5,7 @@
         lexical scanner function declarations
 */
 
-# include "headers/scanner.h"
+# include "../headers/scanner.h"
 # include <iostream>
 # include <fstream>
 

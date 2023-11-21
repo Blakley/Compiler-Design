@@ -5,7 +5,7 @@
         Parser function declarations
 */
 
-# include "headers/parser.h"
+# include "../headers/parser.h"
 # include <iostream>
 
 
