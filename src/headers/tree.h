@@ -8,6 +8,7 @@
 # ifndef TREE_H
 # define TREE_H
 
+# include "token.h"
 # include <iostream>
 # include <string>
 # include <vector>
@@ -35,7 +36,7 @@ class Tree {
 
         void new_node(const std::string& label);              // create a new node
         void new_child(Node* parent, Node* child);            // add a child to a node
-        void new_token(Node* node, const std::string& token); // add a token to a node
+        void new_token(Node* node, token* t);                 // add a token to a node
         void traverse(Node* node);                            // inorder traversal & printing function
 
         Node* root_node() const;     // getter for root node

@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     parser.begin();
 
     // print tree nodes
-    tree.traverse(nullptr);
+    tree.traverse(tree.root_node());
 
     return 0;
 }
