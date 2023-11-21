@@ -2,8 +2,9 @@
     Name: Anthony Blakley
     Date: 11/18/2023
     Description: 
-        This program utilizes a recursive descent top-down 
-        parser to analyze a given programming
+        This project implements a recursive descent parser for a programming language
+        The parser is designed to generate a syntax tree, representing the hierarchical structure of the input code
+        The syntax tree is then traversed in a pre-order fashion, printing each node along with its associated tokens
 */
 
 # include "headers/scanner.h"

@@ -41,7 +41,7 @@ void Tree::clean(Node* node) {
     if (node == nullptr)
         return;
 
-    // delete children recursively
+    // delete children
     for (auto child : node->children)
         clean(child);
 

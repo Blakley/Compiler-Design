@@ -50,9 +50,6 @@ void Parser::begin() {
  * ------------------------------------------
 */
 void Parser::parse_program() {
-
-    std::cout << "handling <program> BNF\n";
-    
     // create first node (root)
     tree.new_node("<program>");
 
@@ -66,8 +63,6 @@ void Parser::parse_program() {
     if (_token.instance != "xopen")
         error("xopen", _token.instance);
 
-    std::cout << "consumed <xopen>\n";
-
     // call function to parse <stats>
     // add child <stats> to parent <program>
     retrieve(); 
@@ -78,14 +73,9 @@ void Parser::parse_program() {
     if (_token.instance != "xclose")
         error("xclose", _token.instance);
 
-    std::cout << "consumed <xclose>\n";
-
     retrieve(); 
     if (_token.id != eof_tk)
         error("EOF", _token.instance);
-
-    // finished parsing
-    std::cout << "\nParsing completed.\n\n";
 }
 
 
@@ -98,8 +88,6 @@ void Parser::parse_program() {
  * ------------------------------------------
 */
 void Parser::parse_vars() {
-    std::cout << "handling <vars> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -128,8 +116,6 @@ void Parser::parse_vars() {
         retrieve();
 
         if (_token.id == identifier_tk) {
-            std::cout << "consumed: " << _token.instance << " token\n";
-
             // add child <varList> to parent <vars>
             parse_varList();
             tree.new_child(vars_node, tree.reference);
@@ -138,8 +124,6 @@ void Parser::parse_vars() {
             error("identifier", _token.instance);
     }
     else if (_token.id == identifier_tk) {
-        std::cout << "consumed: " << _token.instance << " token\n";
-
         // add child <varList> to parent <vars>
         parse_varList();
         tree.new_child(vars_node, tree.reference);
@@ -160,8 +144,6 @@ void Parser::parse_vars() {
  * ------------------------------------------
 */
 void Parser::parse_varList() {
-    std::cout << "handling <varList> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -188,34 +170,27 @@ void Parser::parse_varList() {
         retrieve(); // retrieve next token
 
         // verify the colon
-        if (_token.instance == ":") {
-            std::cout << "consumed: " << _token.instance << " token\n";
+        if (_token.instance == ":")
             retrieve(); // retrieve next token
-        }
         else
             error(":", _token.instance);
 
         // verify the integer
         if (_token.id == integer_tk) {
-            std::cout << "consumed: " << _token.instance << " token\n";
-
             // add "integer" token to <varList> node
+            // retrieve next token
             tree.new_token(varList_node, &_token);
-
-            retrieve(); // retrieve next token
+            retrieve(); 
         }
         else
             error("integer", _token.instance);
 
         // check for the semicolon or the next <varList>
         if (_token.instance == ";") {
-            std::cout << "consumed: " << _token.instance << " token\n";
             retrieve(); // finished, retrieve next token
         }
         // no semicolon; optional <varList> follows
         else if (_token.id == identifier_tk) {
-            std::cout << "consumed: " << _token.instance << " token\n";
-
             // add child <varList> to parent <varList>
             parse_varList();
             tree.new_child(varList_node, tree.reference);
@@ -241,8 +216,6 @@ void Parser::parse_varList() {
  * ------------------------------------------
 */
 void Parser::parse_stat() {
-    std::cout << "handling <stat> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -300,8 +273,6 @@ void Parser::parse_stat() {
  * ------------------------------------------
 */
 void Parser::parse_stats() {
-    std::cout << "handling <stats> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -345,8 +316,6 @@ void Parser::parse_stats() {
  * ------------------------------------------
 */
 void Parser::parse_mStat() {
-    std::cout << "handling <mStat> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -400,8 +369,6 @@ void Parser::parse_mStat() {
  * ------------------------------------------
 */
 void Parser::parse_exp() {
-    std::cout << "handling <exp> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -428,7 +395,6 @@ void Parser::parse_exp() {
     // check for division, multiplication, addition, subtraction, and ~
     while (_token.instance == "/" || _token.instance == "*"
         || _token.instance == "+" || _token.instance == "-" || _token.instance == "~") {
-        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();  // retrieve next token
 
         // add child <M> to parent <exp>
@@ -451,8 +417,6 @@ void Parser::parse_exp() {
  * ------------------------------------------
 */
 void Parser::parse_M() {
-    std::cout << "handling <M> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -478,7 +442,6 @@ void Parser::parse_M() {
 
     // check for addition
     while (_token.instance == "+") {
-        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
 
         // parse the next <M>
@@ -501,8 +464,6 @@ void Parser::parse_M() {
  * ------------------------------------------
 */
 void Parser::parse_N() {
-    std::cout << "handling <N> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -523,7 +484,6 @@ void Parser::parse_N() {
 
     // verify first token
     if (_token.instance == "~") {
-        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve(); // retrieve next token
 
         // parse the next <N>
@@ -540,7 +500,6 @@ void Parser::parse_N() {
         // check for subtraction
         bool unary = false;
         while (_token.instance == "-") {
-            std::cout << "consumed: " << _token.instance << " token\n";
             unary = true;
             retrieve(); // retrieve next token
         }
@@ -567,8 +526,6 @@ void Parser::parse_N() {
  * ------------------------------------------
 */
 void Parser::parse_R() {
-    std::cout << "handling <R> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -589,7 +546,6 @@ void Parser::parse_R() {
 
     // verify first token
     if (_token.instance == "(") {
-        std::cout << "consumed: " << _token.instance << " token\n";
         retrieve();  // retrieve next token
 
         // parse the enclosed <exp>
@@ -598,20 +554,16 @@ void Parser::parse_R() {
         tree.new_child(r_node, tree.reference);
 
         // verify and consume the closing parenthesis
-        if (_token.instance == ")") {
-            std::cout << "consumed: " << _token.instance << " token\n";
+        if (_token.instance == ")")
             retrieve(); // retrieve next token
-        }
         else
             error(")", _token.instance);
     } 
     else if (_token.id == identifier_tk || _token.id == integer_tk) {
-        std::cout << "consumed: " << _token.instance << " token\n";
-
         // add "identifier" or "integer" token to <R> node
+        // retrieve next token
         tree.new_token(r_node, &_token);
-
-        retrieve(); // retrieve next token
+        retrieve(); 
     }
     else 
         error("identifier, integer, or (", _token.instance);
@@ -631,8 +583,6 @@ void Parser::parse_R() {
  * ------------------------------------------
 */
 void Parser::parse_block() {
-    std::cout << "handling <block> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -652,10 +602,8 @@ void Parser::parse_block() {
     */
 
     // verify the opening curly brace
-    if (_token.instance == "{") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "{")
         retrieve(); // retrieve next token
-    }
     else
         error("{", _token.instance);
 
@@ -673,9 +621,6 @@ void Parser::parse_block() {
     if (_token.instance != "}")
         error("}", _token.instance);
 
-    std::cout << "consumed: " << _token.instance << " token\n";
-
-
     // store reference to <block> to be added as a child
     tree.reference = block_node;
 }
@@ -690,8 +635,6 @@ void Parser::parse_block() {
  * ------------------------------------------
 */
 void Parser::parse_in() {
-    std::cout << "handling <in> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -711,29 +654,23 @@ void Parser::parse_in() {
     */
 
     // verify first token
-    if (_token.instance == "xin") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "xin")
         retrieve(); // retrieve next token
-    }
     else 
         error("xin", _token.instance);
 
     // verify next expected token
-    if (_token.instance == ">>") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == ">>")
         retrieve(); // retrieve next token
-    }
     else
         error(">>", _token.instance);
 
     // verify next expected token
     if (_token.id == identifier_tk) {
-        std::cout << "consumed: " << _token.instance << " token\n";
-
         // add "identifier" token to <in> node
+         // retrieve next token
         tree.new_token(in_node, &_token);
-
-        retrieve(); // retrieve next token
+        retrieve(); 
     }
     else
         error("identifier", _token.instance);
@@ -741,8 +678,6 @@ void Parser::parse_in() {
     // verify next expected token
     if (_token.instance != ";")
         error(";", _token.instance);
-
-    std::cout << "consumed: " << _token.instance << " token\n";
 
     // store reference to <in> to be added as a child
     tree.reference = in_node;
@@ -758,8 +693,6 @@ void Parser::parse_in() {
  * ------------------------------------------
 */
 void Parser::parse_out() {
-    std::cout << "handling <out> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -779,18 +712,14 @@ void Parser::parse_out() {
     */
 
     // verify first token
-    if (_token.instance == "xout") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "xout")
         retrieve(); // retrieve next token
-    }
     else 
         error("xout", _token.instance);
 
     // verify next expected token
-    if (_token.instance == "<<")  {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "<<") 
         retrieve(); // retrieve next token
-    }
     else
         error("<<", _token.instance);
 
@@ -802,8 +731,6 @@ void Parser::parse_out() {
     // verify next expected token
     if (_token.instance != ";") 
         error(";", _token.instance);
-
-    std::cout << "consumed: " << _token.instance << " token\n";
 
     // store reference to <out> to be added as a child
     tree.reference = out_node;
@@ -819,8 +746,6 @@ void Parser::parse_out() {
  * ------------------------------------------
 */
 void Parser::parse_if() {
-    std::cout << "handling <if> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -840,18 +765,14 @@ void Parser::parse_if() {
     */
 
     // verify first token
-    if (_token.instance == "xcond") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "xcond")
         retrieve(); // retrieve next token
-    }
     else 
         error("xcond", _token.instance);
 
     // verify next expected token
-    if (_token.instance == "[") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "[")
         retrieve(); // retrieve next token
-    }
     else
         error("[", _token.instance);
 
@@ -871,10 +792,8 @@ void Parser::parse_if() {
     tree.new_child(if_node, tree.reference);
 
     // verify next expected token
-    if (_token.instance == "]") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "]")
         retrieve(); // retrieve next token
-    }
     else
         error("]", _token.instance);
 
@@ -897,8 +816,6 @@ void Parser::parse_if() {
  * ------------------------------------------
 */
 void Parser::parse_loop() {
-    std::cout << "handling <loop> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -918,18 +835,14 @@ void Parser::parse_loop() {
     */
 
     // verify first token
-    if (_token.instance == "xloop") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "xloop")
         retrieve();
-    }
     else
         error("xloop", _token.instance);
 
     // verify next expected token
-    if (_token.instance == "[") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "[")
         retrieve();
-    }
     else
         error("[", _token.instance);
 
@@ -949,10 +862,8 @@ void Parser::parse_loop() {
     tree.new_child(loop_node, tree.reference);
 
     // verify next expected token
-    if (_token.instance == "]") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "]")
         retrieve();
-    }
     else
         error("]", _token.instance);
 
@@ -975,8 +886,6 @@ void Parser::parse_loop() {
  * ------------------------------------------
 */
 void Parser::parse_assign() {
-    std::cout << "handling <assign> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -996,20 +905,15 @@ void Parser::parse_assign() {
     */
 
     // verify first token
-    if (_token.instance == "xlet") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+    if (_token.instance == "xlet")
         retrieve();
-    }
     else
         error("xlet", _token.instance);
 
     // verify next expected token
     if (_token.id == identifier_tk) {
-        std::cout << "consumed: " << _token.instance << " token\n";
-
         // add "identifier" token to <assign> node
         tree.new_token(assign_node, &_token);
-
         retrieve();
     }
     else
@@ -1023,8 +927,6 @@ void Parser::parse_assign() {
     // verify next expected token
     if (_token.instance != ";")
         error(";", _token.instance); 
-
-    std::cout << "consumed: " << _token.instance << " token\n";
 
     // store reference to <assign> to be added as a child
     tree.reference = assign_node;
@@ -1041,8 +943,6 @@ void Parser::parse_assign() {
  * ------------------------------------------
 */
 void Parser::parse_RO() {
-    std::cout << "handling <RO> BNF\n";
-
     /**
      * ======================
      *  handle node storing
@@ -1064,10 +964,8 @@ void Parser::parse_RO() {
     // check for the possible relational operators
     if (_token.instance == "<<" || _token.instance == ">>" ||
         _token.instance == "<" || _token.instance == ">" ||
-        _token.instance == "=" || _token.instance == "%") {
-        std::cout << "consumed: " << _token.instance << " token\n";
+        _token.instance == "=" || _token.instance == "%")
         retrieve();  // consume the relational operator
-    }
     else
         error("relational operator", _token.instance);
 
@@ -1103,8 +1001,7 @@ void Parser::retrieve() {
  * ------------------------------------------
 */
 void Parser::error(std::string expected, std::string value) {
-    // Implementation for error handling
-    std::cerr << "Error, expected [ " << expected << " ] but received token: " << value << std::endl;
+    std::cerr << "[Error], PARSER ERROR, expected [ " << expected << " ] but received token: " << value << std::endl;
     exit(EXIT_FAILURE);
 }
 

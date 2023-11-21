@@ -2,7 +2,7 @@
     Name: Anthony Blakley
     Date: 11/18/2023
     Description: 
-        Tree header file for parse tree output
+        Header file for parse tree output
 */
 
 # ifndef TREE_H

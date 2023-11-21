@@ -2,7 +2,7 @@
     Name: Anthony Blakley
     Date: 11/18/2023
     Description: 
-        Scanner header file for lexical scanner
+        Header file for lexical scanner
 */
 
 # ifndef SCANNER_H
