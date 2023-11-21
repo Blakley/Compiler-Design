@@ -1,7 +1,7 @@
 CC = g++ -std=c++11
 CFLAGS = -Wall -g
 
-MAIN_SRC = main.cpp
+MAIN_SRC = src/main.cpp
 TREE_SRC = src/tree.cpp
 PARSER_SRC = src/parser.cpp
 SCANNER_SRC = src/scanner.cpp

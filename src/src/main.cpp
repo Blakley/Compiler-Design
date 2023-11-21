@@ -7,8 +7,8 @@
         The syntax tree is then traversed in a pre-order fashion, printing each node along with its associated tokens
 */
 
-# include "headers/scanner.h"
-# include "headers/parser.h"
+# include "../headers/scanner.h"
+# include "../headers/parser.h"
 
 /**
  * ------------------------------------------
@@ -32,7 +32,11 @@ int main(int argc, char** argv) {
     parser.begin();
 
     // print tree [preorder traversal]
-    tree.traverse(tree.root_node(), 0);
+    // tree.traverse(tree.root_node(), 0);
+
+    // check static semantics
+    // Semantics semantics;
+    // semantics.static_semantics(tree.root_node);
 
     return 0;
 }

@@ -1,20 +1,27 @@
 # Use the `make` command to make the project
 
 # Running the program with the provided test files:
-    1. good input programs: (10 total from lecture)
-        ./P2 tests/good_input/P2_good<file number>
-        example: 
-            ./P2 tests/good_input/P2_good10
-        or 
-            /P2 < tests/good_input/P2_good10.f23
+    1. good input programs: (3 total from project notes)
+        
+        ./P2 tests/semantics/good/P3_gg<file number>
 
-    2. bad input programs:  (10 total from lecture)
-        ./P2 tests/bad_input/P2_bad<file number>
         example: 
-            ./P2 tests/bad_input/P2_bad1
-        or
-            ./P2 < tests/bad_input/P2_bad1.f23
+            ./P2 tests/semantics/good/P3_gg1
+        or 
+            /P2 < tests/semantics/good/P3_gg1.f23
+
+    2. bad input programs:  (3 total from project notes)
+        
+        ./P2 tests/semantics/bad/P3_gg<file number>
+
+        example: 
+            ./P2 tests/semantics/bad/P3_gg3
+        or 
+            /P2 < tests/semantics/bad/P3_gg3.f23
 
 # Program structure
-    The source files, excluding main.cpp, are stored in the "src" directory
+    The source files are stored in the "src" directory
     The header files are all stored in the "headers" directory
+
+# Global option for all variables
+    * There is only one scope, the global scope, regardless of where a variable is defined.
