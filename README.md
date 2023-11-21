@@ -1,36 +1,11 @@
-# P1
+# P2
 
-## Overview
+This project implements a recursive descent parser for a custom programming language. The parser generates a syntax tree to represent the hierarchical structure of the input code. The syntax tree is then traversed in a pre-order manner, providing a visual representation of the parsed code.
 
-## Table of Contents
+## Features
 
-- [Usage](#usage)
-- [File Structure](#file-structure)
+- **Token Handling:** The parser recognizes and handles different token types, such as identifiers and integers.
 
-## Usage
+- **Non-Terminal Parsing:** The code includes functions for parsing non-terminals, creating corresponding nodes in the syntax tree.
 
-### Prerequisites
-
-Before using this program, make sure you have:
-
-- A C++ compiler (e.g., g++)
-
-### Compilation
-
-Compile the program using the provided Makefile:
-
-```bash
-make
-```
-
-### Running the Program
-
-
-### Output
-
-
-## File Structure
-
-* P1.h:   Header for program
-* P1.cpp: Main program file.
-* Makefile: Makefile for compiling the program.
+- **Tree Traversal:** The syntax tree is traversed in a pre-order fashion, facilitating a structured visualization of the parsed code.
