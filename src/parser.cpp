@@ -729,6 +729,10 @@ void Parser::parse_in() {
     // verify next expected token
     if (_token.id == identifier_tk) {
         std::cout << "consumed: " << _token.instance << " token\n";
+
+        // add "identifer" token to <in> node
+        tree.new_token(in_node, &_token);
+
         retrieve(); // retrieve next token
     }
     else
@@ -1002,6 +1006,10 @@ void Parser::parse_assign() {
     // verify next expected token
     if (_token.id == identifier_tk) {
         std::cout << "consumed: " << _token.instance << " token\n";
+
+        // add "identifer" token to <assign> node
+        tree.new_token(assign_node, &_token);
+
         retrieve();
     }
     else
