@@ -85,7 +85,7 @@ void Parser::parse_program() {
         error("EOF", _token.instance);
 
     // finished parsing
-    std::cout << "\nParsing <program> completed.\n";
+    std::cout << "\nParsing completed.\n\n";
 }
 
 

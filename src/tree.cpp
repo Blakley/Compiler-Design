@@ -148,27 +148,31 @@ size_t Tree::tree_size() const {
 
 /**
  * ------------------------------------------
- *         Preorder tree traversal      
+ *         Preorder tree traversal
  * 
- * @param node : current node
+ * @param node        : current node
+ * @param indentation : indentation amount
  * ------------------------------------------
 */
-void Tree::traverse(Node* node) {
-    if (node == nullptr) {
+void Tree::traverse(Node* node, int indentation) {
+    if (node == nullptr)
         return;
+
+    // print header
+    if (node == root) {
+        std::string line(20, '=');
+        std::cout << line << "\n";
+        std::cout << " Preorder Traversal\n"; 
+        std::cout << line << "\n";
     }
 
-    // Print tokens of the current node
-    std::cout << "Node: " << node->label << "\n";
-
-
-    std::cout << "Root has: " << node->children.size() << "children\n";
-
-    // // Traverse children in preorder
-    // for (auto child : node->children) {
-    //     traverse(child);
-    //     return;
-    // }
+    // print tokens of the current node with indentation
+    for (int i = 0; i < indentation; ++i)
+        std::cout << "    ";
     
-    // std::cout << "Nodes in tree: " << size << "\n";
+    std::cout << node->label << "\n";
+
+    // Traverse children in preorder with increased indentation
+    for (auto child : node->children)
+        traverse(child, indentation + 1);
 }

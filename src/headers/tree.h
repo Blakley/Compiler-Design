@@ -34,10 +34,10 @@ class Tree {
 
         Node* reference; // reference to a node
 
-        void new_node(const std::string& label);              // create a new node
-        void new_child(Node* parent, Node* child);            // add a child to a node
-        void new_token(Node* node, token* t);                 // add a token to a node
-        void traverse(Node* node);                            // inorder traversal & printing function
+        void new_node(const std::string& label);   // create a new node
+        void new_child(Node* parent, Node* child); // add a child to a node
+        void new_token(Node* node, token* t);      // add a token to a node
+        void traverse(Node* node, int i);          // inorder traversal & printing function
 
         Node* root_node() const;     // getter for root node
         Node* previous_node() const; // getter for previous node
