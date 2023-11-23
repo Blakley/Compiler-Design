@@ -7,6 +7,7 @@
 
 # include "../headers/semantics.h"
 # include <iostream>
+# include <regex>
 
 
 /**
@@ -70,6 +71,13 @@ void Semantics::static_semantics() {
     // Traverse the tree for variable definitions
     traverse(root);
 
+    // Output the defined variables
+    std::cout << "Defined Variables: ";
+    for (const auto& variable : variables) {
+        std::cout << variable << " ";
+    }
+    std::cout << std::endl;
+
     // we've checked tree definitions
     definitions = false;
 
@@ -89,14 +97,29 @@ void Semantics::traverse(Node* node) {
     if (node == nullptr)
         return;
 
-    // Perform logic based on the definitions flag
+    // check for variable definitions and insert them into the symbol table
     if (definitions) {
-        // Check for variable definitions and insert them into the symbol table
-        // todo:
+        // check for identifiers defined in the <varList> nonterminal
+        if (node->label == "<varList>") {
+            // extract defined identifiers
+            for (const auto& token : node->tokens) {
+                // search for an identifer in the token string
+                std::smatch matches;
+                std::regex pattern("identifier: \"([^\"]+)\"");
+                               
+                if (std::regex_search(token, matches, pattern)) {
+                    // insert identifier into symbol table
+                    std::string identifier = matches[1];
+                    insert(identifier);
+                } 
+            }
+        }
     } 
     else {
-        // Check for variable uses and verify them against the symbol table
+        // check for variable uses and verify them against the symbol table
         // todo:
+
+
     }
 
     // Recursively traverse the children
@@ -105,34 +128,14 @@ void Semantics::traverse(Node* node) {
 }
 
 
-
-    /*
-            ===================
-            Project 3 --> TODO:
-            ===================
-
-            Goal, implemenet static semantics: proper definition and use of variables
-            
-            * A variable has to be defined anywhere in the program to be used (must satisfy syntax), before or after use
-
-                1. variable definition: any identifier listed in any <varList> is definition
-
-                2. variable use: identifier showing up in any statement
-                
-                * rules:
-                    no multiple variables with same name and a variable used must be defined
-
-                    There can be two kinds of errors: 
-                        1. multiple variables with the same name in the same scope 
-                        2. undefined variable
-        
-
-            * Variable name can only be defined once in a scope but can be reused in another scope
-    
-            * There is only one scope, the global scope, regardless of where a variable is defined
-    
-            * In main.cpp, call tree.semantics(tree.root_node)
-                It just does a tree traversal (like the traverse function) (might need to perform 2 traversals)
-                
-
-    */
+/**
+ * ------------------------------------------
+ *         Handle error semantics
+ * 
+ * @param message  : error message
+ * ------------------------------------------
+*/
+void Semantics::error(std::string message) {
+    std::cerr << "[Error], SEMANTICS ERROR: [ " << message << " ]" << std::endl;
+    exit(EXIT_FAILURE);
+}

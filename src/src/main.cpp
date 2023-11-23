@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/18/2023
+    Date: 11/23/2023
     Description: 
         
 */
@@ -29,6 +29,9 @@ int main(int argc, char** argv) {
 
     // being top-down parsing
     parser.begin();
+
+    // print tree (Test)
+    tree.traverse(tree.root_node(), 0);
 
     // get semantic object
     Semantics semantics(tree.root_node());

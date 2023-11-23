@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/18/2023
+    Date: 11/23/2023
     Description: 
         Tree function declarations
 */
@@ -177,6 +177,7 @@ void Tree::traverse(Node* node, int indentation) {
     
     // print both the label and tokens of the current node on the same line
     std::cout << node->label << " ";
+
     for (const auto& token : node->tokens) {
         std::cout << token << " ";
     }
