@@ -6,7 +6,7 @@ TREE_SRC = src/tree.cpp
 PARSER_SRC = src/parser.cpp
 SCANNER_SRC = src/scanner.cpp
 SEMANTICS_SRC = src/semantics.cpp
-EXE = P2
+EXE = P3
 
 # List of header files
 HEADERS = headers/token.h headers/tree.h headers/scanner.h headers/parser.h headers/semantics.h

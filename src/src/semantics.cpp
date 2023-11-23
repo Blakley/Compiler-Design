@@ -7,7 +7,8 @@
 
 # include "../headers/semantics.h"
 # include <iostream>
-# include <regex>
+# include <sstream>   
+# include <limits>  
 
 
 /**
@@ -99,20 +100,24 @@ void Semantics::traverse(Node* node) {
         if (node->label == "<varList>") {
             // extract defined identifiers
             for (const auto& token : node->tokens) {
-                // search for an identifer in the token string
-                std::smatch matches;
-                std::regex pattern("identifier: \"([^\"]+)\" line: (\\d+)");
-                               
-                if (std::regex_search(token, matches, pattern)) {
-                    std::string identifier = matches[1];
-                    std::string line = matches[2];
+                std::istringstream iss(token);
 
-                    // check for multiple definitions
-                    if (verify(identifier))
-                        error("Variable: \"" + identifier + "\" at line " + line + ", previously defined");
-                    
-                    insert(identifier);
-                } 
+                std::string identifier;
+                std::string line;
+
+                // skip "identifier: "
+                iss.ignore(std::numeric_limits<std::streamsize>::max(), '\"');
+                std::getline(iss, identifier, '\"');
+
+                // skip " line: "
+                iss.ignore(std::numeric_limits<std::streamsize>::max(), '\"');
+                std::getline(iss, line, '\"');
+
+                // check for multiple definitions
+                if (verify(identifier))
+                    error("Variable: \"" + identifier + "\" at line " + line + ", previously defined");
+
+                insert(identifier);
             }
         }
     } 
@@ -121,22 +126,24 @@ void Semantics::traverse(Node* node) {
         
         // variable usage happens in the following nonterminals (under <stat>)
         if (node->label == "<in>" || node->label == "<R>") {
-            
             // extract used identifier
             for (const auto& token : node->tokens) {
-                // search for an identifer in the token string
-                std::smatch matches;
-                std::regex pattern("identifier: \"([^\"]+)\" line: (\\d+)");
+                std::istringstream iss(token);
 
-                // verify if the variable is in the symbol table           
-                if (std::regex_search(token, matches, pattern)) {
-                    std::string identifier = matches[1];
-                    std::string line = matches[2];
+                std::string identifier;
+                std::string line;
 
-                    // report error for undefined variable (those not in symbol table)
-                    if (!verify(identifier))
-                        error("Undefined variable: \"" + identifier + "\", referenced at line: " + line);
-                } 
+                // skip "identifier: "
+                iss.ignore(std::numeric_limits<std::streamsize>::max(), '\"');
+                std::getline(iss, identifier, '\"');
+
+                // skip " line: "
+                iss.ignore(std::numeric_limits<std::streamsize>::max(), '\"');
+                std::getline(iss, line, '\"');
+
+                // report error for undefined variable (those not in symbol table)
+                if (!verify(identifier))
+                    error("Undefined variable: \"" + identifier + "\", referenced at line: " + line);
             }
         }
     }
