@@ -186,39 +186,3 @@ void Tree::traverse(Node* node, int indentation) {
     for (auto child : node->children)
         traverse(child, indentation + 1);
 }
-
-    /*
-            ===================
-            Project 3 --> TODO:
-            ===================
-
-            Goal, implemenet static semantics: proper definition and use of variables
-            
-            * A variable has to be defined anywhere in the program to be used (must satisfy syntax), before or after use
-
-                1. variable definition: any identifier listed in any <varList> is definition
-
-                2. variable use: identifier showing up in any statement
-                
-                * rules:
-                    no multiple variables with same name and a variable used must be defined
-
-                    There can be two kinds of errors: 
-                        1. multiple variables with the same name in the same scope 
-                        2. undefined variable
-        
-
-            * Variable name can only be defined once in a scope but can be reused in another scope
-    
-            * There is only one scope, the global scope, regardless of where a variable is defined
-    
-            * In main.cpp, call tree.semantics(tree.root_node)
-                It just does a tree traversal (like the traverse function) (might need to perform 2 traversals)
-                
-            * implementation option:
-                - have a file: semantics.cpp, where the Semantics object takes in the root node of the tree 
-                - create necessary semantic functions in semantics.cpp
-                - create a semantics.h file
-                - in main, call semantics.static_semantics();
-
-    */

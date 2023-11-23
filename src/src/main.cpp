@@ -2,13 +2,12 @@
     Name: Anthony Blakley
     Date: 11/18/2023
     Description: 
-        This project implements a recursive descent parser for a programming language
-        The parser is designed to generate a syntax tree, representing the hierarchical structure of the input code
-        The syntax tree is then traversed in a pre-order fashion, printing each node along with its associated tokens
+        
 */
 
 # include "../headers/scanner.h"
 # include "../headers/parser.h"
+# include "../headers/semantics.h"
 
 /**
  * ------------------------------------------
@@ -31,12 +30,11 @@ int main(int argc, char** argv) {
     // being top-down parsing
     parser.begin();
 
-    // print tree [preorder traversal]
-    // tree.traverse(tree.root_node(), 0);
+    // get semantic object
+    Semantics semantics(tree.root_node());
 
-    // check static semantics
-    // Semantics semantics;
-    // semantics.static_semantics(tree.root_node);
+    // check semantics
+    semantics.static_semantics();
 
     return 0;
 }

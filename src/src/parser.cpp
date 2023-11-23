@@ -963,8 +963,8 @@ void Parser::parse_RO() {
 
     // check for the possible relational operators
     if (_token.instance == "<<" || _token.instance == ">>" ||
-        _token.instance == "<" || _token.instance == ">" ||
-        _token.instance == "=" || _token.instance == "%")
+        _token.instance == "<"  || _token.instance == ">" ||
+        _token.instance == "="  || _token.instance == "%")
         retrieve();  // consume the relational operator
     else
         error("relational operator", _token.instance);
