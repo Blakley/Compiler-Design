@@ -99,17 +99,22 @@ void Semantics::traverse(Node* node) {
 
     // check for variable definitions and insert them into the symbol table
     if (definitions) {
-        // check for identifiers defined in the <varList> nonterminal
+        // check for identifiers defined in the <varList> nonterminal (under <vars>)
         if (node->label == "<varList>") {
             // extract defined identifiers
             for (const auto& token : node->tokens) {
                 // search for an identifer in the token string
                 std::smatch matches;
-                std::regex pattern("identifier: \"([^\"]+)\"");
+                std::regex pattern("identifier: \"([^\"]+)\" line: (\\d+)");
                                
                 if (std::regex_search(token, matches, pattern)) {
-                    // insert identifier into symbol table
                     std::string identifier = matches[1];
+                    std::string line = matches[2];
+
+                    // check for multiple definitions
+                    if (verify(identifier))
+                        error("Variable: \"" + identifier + "\" at line " + line + ", previously defined");
+                    
                     insert(identifier);
                 } 
             }
@@ -118,7 +123,7 @@ void Semantics::traverse(Node* node) {
     else {
         // check for variable uses and verify them against the symbol table
         
-        // variable usage happens in the following nonterminals
+        // variable usage happens in the following nonterminals (under <stat>)
         if (node->label == "<in>" || node->label == "<R>") {
             
             // extract used identifier
