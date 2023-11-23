@@ -1,8 +1,8 @@
 /*
     Name: Anthony Blakley
-    Date: 11/18/2023
+    Date: 11/23/2023
     Description: 
-        Outlines a token structure
+        Header file for token structure
 */
 
 # ifndef TOKEN_H

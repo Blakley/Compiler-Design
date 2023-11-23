@@ -71,18 +71,14 @@ void Semantics::static_semantics() {
     // Traverse the tree for variable definitions
     traverse(root);
 
-    // Output the defined variables
-    std::cout << "Defined Variables: ";
-    for (const auto& variable : variables) {
-        std::cout << variable << " ";
-    }
-    std::cout << "\n\n";
-
-    // we've checked tree definitions
+    // we've now checked tree definitions
     definitions = false;
 
     // Traverse the tree for variable usage
     traverse(root);
+
+    // No errors found
+    std::cout << "[Success], Static Semantics are good\n";
 }
 
 
@@ -139,7 +135,7 @@ void Semantics::traverse(Node* node) {
 
                     // report error for undefined variable (those not in symbol table)
                     if (!verify(identifier))
-                        error("Undefined variable: \"" + identifier + "\" referenced at line: " + line);
+                        error("Undefined variable: \"" + identifier + "\", referenced at line: " + line);
                 } 
             }
         }

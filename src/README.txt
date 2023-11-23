@@ -10,7 +10,7 @@
         or 
             /P2 < tests/semantics/good/P3_gg1.f23
 
-    2. bad input programs:  (3 total from project notes)
+    2. bad input programs: (3 total from project notes)
         
         ./P2 tests/semantics/bad/P3_gg<file number>
 

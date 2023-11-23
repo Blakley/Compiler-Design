@@ -2,7 +2,7 @@
     Name: Anthony Blakley
     Date: 11/23/2023
     Description: 
-        Header file for a recursive descent top-down parser
+        Header file for recursive descent top-down parser
 */
 
 # ifndef PARSER_H

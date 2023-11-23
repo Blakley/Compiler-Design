@@ -2,7 +2,9 @@
     Name: Anthony Blakley
     Date: 11/23/2023
     Description: 
-        
+            This project performs static semantics checks on an Abstract Syntax Tree (AST), 
+            ensuring proper variable definition and usage. The AST is generated from our 
+            recursive decent parser which looks at the input source program.
 */
 
 # include "../headers/scanner.h"
@@ -27,17 +29,13 @@ int main(int argc, char** argv) {
     // get parser object
     Parser parser(scanner, tree);
 
-    // being top-down parsing
+    // begin program top-down parsing
     parser.begin();
-
-    // print tree (Test)
-    tree.traverse(tree.root_node(), 0);
-    std::cout << "\n\n";
 
     // get semantic object
     Semantics semantics(tree.root_node());
 
-    // check semantics
+    // check program semantics
     semantics.static_semantics();
 
     return 0;

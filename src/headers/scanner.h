@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/18/2023
+    Date: 11/23/2023
     Description: 
         Header file for lexical scanner
 */

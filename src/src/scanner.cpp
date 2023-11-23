@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/18/2023
+    Date: 11/23/2023
     Description: 
         lexical scanner function declarations
 */
