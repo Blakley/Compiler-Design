@@ -32,6 +32,7 @@ int main(int argc, char** argv) {
 
     // print tree (Test)
     tree.traverse(tree.root_node(), 0);
+    std::cout << "\n\n";
 
     // get semantic object
     Semantics semantics(tree.root_node());

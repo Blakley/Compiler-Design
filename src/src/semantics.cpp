@@ -76,7 +76,7 @@ void Semantics::static_semantics() {
     for (const auto& variable : variables) {
         std::cout << variable << " ";
     }
-    std::cout << std::endl;
+    std::cout << "\n\n";
 
     // we've checked tree definitions
     definitions = false;
@@ -117,12 +117,30 @@ void Semantics::traverse(Node* node) {
     } 
     else {
         // check for variable uses and verify them against the symbol table
-        // todo:
+        
+        // variable usage happens in the following nonterminals
+        if (node->label == "<in>" || node->label == "<R>") {
+            
+            // extract used identifier
+            for (const auto& token : node->tokens) {
+                // search for an identifer in the token string
+                std::smatch matches;
+                std::regex pattern("identifier: \"([^\"]+)\" line: (\\d+)");
 
+                // verify if the variable is in the symbol table           
+                if (std::regex_search(token, matches, pattern)) {
+                    std::string identifier = matches[1];
+                    std::string line = matches[2];
 
+                    // report error for undefined variable (those not in symbol table)
+                    if (!verify(identifier))
+                        error("Undefined variable: \"" + identifier + "\" referenced at line: " + line);
+                } 
+            }
+        }
     }
 
-    // Recursively traverse the children
+    // traverse the children
     for (auto child : node->children)
         traverse(child);
 }
@@ -136,6 +154,6 @@ void Semantics::traverse(Node* node) {
  * ------------------------------------------
 */
 void Semantics::error(std::string message) {
-    std::cerr << "[Error], SEMANTICS ERROR: [ " << message << " ]" << std::endl;
+    std::cerr << "[Error], SEMANTICS ERROR: ( " << message << " )" << std::endl;
     exit(EXIT_FAILURE);
 }

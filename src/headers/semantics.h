@@ -51,12 +51,12 @@ class Semantics {
                     no multiple variables with same name and a variable used must be defined
 
                     There can be two kinds of errors: 
-                        1. multiple variables with the same name in the same scope 
+                        1. multiple variables with the same name in the same scope <--- (todo)
                         2. undefined variable
         
             * Variable name can only be defined once in a scope but can be reused in another scope
             * There is only one scope, the global scope, regardless of where a variable is defined
 
-    
+
 
     */
