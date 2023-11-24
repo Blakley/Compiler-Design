@@ -8,7 +8,7 @@
         example: 
             ./P3 tests/semantics/good/P3_gg1
         or 
-            /P3 < tests/semantics/good/P3_gg1.f23
+            ./P3 < tests/semantics/good/P3_gg1.f23
 
     2. bad input programs: (3 total from project notes)
         
@@ -17,7 +17,7 @@
         example: 
             ./P3 tests/semantics/bad/P3_gg3
         or 
-            /P3 < tests/semantics/bad/P3_gg3.f23
+            ./P3 < tests/semantics/bad/P3_gg3.f23
 
 # Program structure
     The source files are stored in the "src" directory
