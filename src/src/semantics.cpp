@@ -109,10 +109,10 @@ void Semantics::traverse(Node* node) {
                     identifier = token.substr(identifierPos + 13, linePos - (identifierPos + 13));
                     line = token.substr(linePos + 7);
                     
-                    // check for multiple definitions
+                    // multiple definitions (already present in symbol table)
                     if (verify(identifier))
-                        error("Variable: \"" + identifier + "\" at line " + line + ", previously defined");
-                    
+                        error("Variable: \"" + identifier + " at line " + line + ", previously defined");
+
                     insert(identifier);
                 } 
             }
@@ -138,9 +138,9 @@ void Semantics::traverse(Node* node) {
                     identifier = token.substr(identifierPos + 13, linePos - (identifierPos + 13));
                     line = token.substr(linePos + 7);
 
-                    // report error for undefined variable (those not in symbol table)
+                    // undefined variable (those not in symbol table)
                     if (!verify(identifier))
-                        error("Undefined variable: \"" + identifier + "\", referenced at line: " + line);
+                        error("Undefined variable: \"" + identifier + ", referenced at line: " + line);
                 } 
             }
         }
