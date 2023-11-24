@@ -40,3 +40,18 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
+/*
+    TODO (P4):
+
+    Part 1. (Code generation)
+
+        produce a target file:
+            a) a.asm (if keyboard input)
+            b) file.asm (if file was given as argument)
+
+
+    Part 2. (Storage allocation)
+
+
+*/
