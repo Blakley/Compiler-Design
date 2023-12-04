@@ -18,6 +18,13 @@
 */
 Generator::Generator(Node* root) : root(root) {
     // constructor function
+    generate(root);
+
+    // test output
+    for (const std::string& var : locals)
+        std::cout << "variable: " << var << std::endl;
+    std::cout << "\n";
+    
 }
 
 
@@ -33,13 +40,82 @@ Generator::~Generator() {
 
 /**
  * ------------------------------------------
- *              
+ *  Traverse the Tree to generate the .asm
+ * 
+ * @param node : the current node 
  * ------------------------------------------
 */
-void Generator::generate() {
-    // todo:
-    // Implement code generation logic here
-    // Traverse the AST and generate code
+void Generator::generate(Node* node) {
+    if (node == nullptr)
+        return;
+
+    // ============================
+    //  handle <input> nonterminal
+    // ============================
+
+    // extract defined identifiers (local variable)
+    if (node->label == "<in>") {
+        for (const auto& token : node->tokens) {
+            // search for an identifer in the token string
+            std::string identifier;
+            size_t position = token.find("identifier: \"");
+
+            // extract variable name   
+            if (position != std::string::npos) {
+                size_t s = position + 13;
+                size_t e = token.find("\"", s);
+
+                // add local variable
+                if (e != std::string::npos) {
+                    identifier = token.substr(s, e - s);
+                    locals.insert(identifier);
+                }
+            }           
+        }
+    }
+
+    // ==============================
+    //  handle <varList> nonterminal
+    // ===============================
+
+    // extract defined identifiers (local variable)
+    if (node->label == "<varList>") {
+        // extract defined identifiers
+        for (const auto& token : node->tokens) {
+            // search for an identifer in the token string
+            std::string identifier;
+            size_t position = token.find("identifier: \"");
+
+            // extract variable name   
+            if (position != std::string::npos) {
+                size_t s = position + 13;
+                size_t e = token.find("\"", s);
+
+                // add local variable
+                if (e != std::string::npos) {
+                    identifier = token.substr(s, e - s);
+                    locals.insert(identifier);
+                }
+            }    
+        }
+    }
+
+    // traverse the children
+    for (auto child : node->children)
+        generate(child);
+
+
+    /*
+        Notes:
+    
+        create local variable list structure:
+        variables that will be defined in assembly code
+
+        create stack variable list structure:
+        variables that will be added into the stack in the 
+        assembly code we'll use this structure whenever possible   
+    */
+
 }
 
 

@@ -11,18 +11,22 @@
 #include "tree.h"
 #include <fstream>
 #include <vector>
+#include <set>
 
 class Generator {
     private:
         Node* root;                         // root of AST
         std::vector<std::string> assembly;  // store generated assembly code
-
+        std::set<std::string> locals;       // local variables
+        
     public:
         Generator(Node* root);  // Constructor 
         ~Generator();           // Destructor 
 
-        void generate();                           // starts code generation
+        void generate(Node* n);                    // starts code generation
         void output(const std::string& fileName);  // outputs generated code to a file
+
+
 };
 
 #endif  // GENERATOR_H
