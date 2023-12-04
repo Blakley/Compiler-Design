@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/23/2023
+    Date: 12/03/2023
     Description: 
         Header file for token structure
 */

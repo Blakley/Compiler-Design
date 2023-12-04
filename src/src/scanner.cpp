@@ -50,12 +50,6 @@ Scanner::~Scanner() {
     // close input file stream
     if (inputfile.is_open())
         inputfile.close();
-
-    // remove temporary file
-    if (filename == "_temp") {
-        if (std::remove(filename.c_str()) != 0)
-            std::cerr << "[Error], Unable to delete tempory file `_temp`" << std::endl;
-    }  
 }
 
 
@@ -79,11 +73,11 @@ void Scanner::arguments(int argc, char** argv) {
             // [Read argument from file type 1: redirection file]
 
             //  create temporary file
-            std::fstream temporary("_temp", std::ios::out);
+            std::fstream temporary("a", std::ios::out);
 
              // error opening created file
             if (!temporary.is_open()) { 
-                std::cerr << error_makefile << "_temp" << std::endl;
+                std::cerr << error_makefile << "a" << std::endl;
                 exit(EXIT_FAILURE);
             }
 
@@ -94,7 +88,7 @@ void Scanner::arguments(int argc, char** argv) {
             }
             temporary.close();
 
-            filename = "_temp";
+            filename = "a";
             break;
         }
         case 2: {

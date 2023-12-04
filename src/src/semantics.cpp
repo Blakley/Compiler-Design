@@ -75,9 +75,6 @@ void Semantics::static_semantics() {
 
     // Traverse the tree for variable usage
     traverse(root);
-
-    // No errors found
-    std::cout << "[Success], Static Semantics are good\n";
 }
 
 

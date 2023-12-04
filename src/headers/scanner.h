@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/23/2023
+    Date: 12/03/2023
     Description: 
         Header file for lexical scanner
 */
@@ -18,11 +18,10 @@ typedef std::tuple<token, token> _tokens;
 // Lexical scanner class
 class Scanner {
     private:
-        // lookahead character, file name & index & token line
+        // lookahead character, index & token line
         int fileindex;
         int lineindex;
         char lookahead;
-        std::string filename;
 
         // list of recognized characters and their corresponding token category
         std::map<std::string, std::vector<std::string>> recognized;
@@ -34,6 +33,9 @@ class Scanner {
         bool skip_flag;
 
     public:
+        // reference to the input file
+        std::string filename;
+
         // reference to current token
         token _token;
 
