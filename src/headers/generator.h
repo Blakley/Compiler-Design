@@ -16,8 +16,13 @@
 class Generator {
     private:
         Node* root;                         // root of AST
-        std::vector<std::string> assembly;  // store generated assembly code
+
+        int label_counter;                  // counter used to generate unique labels
+
         std::set<std::string> locals;       // local variables
+        std::vector<std::string> assembly;  // store generated assembly code
+        
+
         
     public:
         Generator(Node* root);  // Constructor 
@@ -28,6 +33,7 @@ class Generator {
 
         void generate_variables(Node* n);  // 
         void generate_if(Node* n);         // 
+        void generate_xclose();            // 
 
 };
 

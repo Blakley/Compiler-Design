@@ -16,9 +16,14 @@
  * @param r : root node of AST
  * ------------------------------------------
 */
-Generator::Generator(Node* root) : root(root) {
+Generator::Generator(Node* root) : root(root), label_counter(0) {
     // constructor function
+
+    // start generating assembly
     generate(root);
+
+    // generate ending assembly
+    generate_xclose();
 }
 
 
@@ -29,6 +34,9 @@ Generator::Generator(Node* root) : root(root) {
 */
 Generator::~Generator() {
     // destructor function
+
+    // clear the locals set
+    locals.clear();
 }
 
 
@@ -40,43 +48,43 @@ Generator::~Generator() {
  * ------------------------------------------
 */
 void Generator::generate(Node* node) {
+    // ensure the node is not null
     if (node == nullptr)
         return;
+
+    // std::cout << "node label: " << node->label << std::endl;
 
     // ===============================
     //  handle <input>   nonterminal
     //  handle <varList> nonterminal
     // ===============================
 
-    // extract defined identifiers, create local variables
     if (node->label == "<in>" || node->label == "<varList>")
         generate_variables(node);
 
     // ===============================
-    //  handle <if>   nonterminal
+    //    handle <if> nonterminal
     // ===============================    
 
     if (node->label == "<if>") 
         generate_if(node);
 
-
-
     // traverse the children
     for (auto child : node->children)
         generate(child);
-
 }
 
 
 /**
  * ------------------------------------------
- * 
+ * Generates assembly code for the 
+ * local variables in the input program
  * 
  *  @param node : the current node
  * ------------------------------------------
 */
 void Generator::generate_variables(Node* node) {
-    // 
+    // find identifers
     for (const auto& token : node->tokens) {
         // search for an identifer in the token string
         std::string identifier;
@@ -102,13 +110,58 @@ void Generator::generate_variables(Node* node) {
 
 /**
  * ------------------------------------------
+ * Generates assembly code for the 
+ * conditional (if) statement in the AST
  * 
- * 
- *  @param node : the current node
+ * @param node: current node
  * ------------------------------------------
 */
 void Generator::generate_if(Node* node) {
-    // todo:
+    // Generate code for the condition
+    generate(node->children[0]); // generates code for the left side of the condition
+    generate(node->children[2]); // generates code for the right side of the condition
+
+    // subtract the right side from the left side
+    assembly.push_back("SUB");
+
+    // use BRNEG to branch if the result is negative
+    std::string branchLabel = "Label" + std::to_string(label_counter++);
+    assembly.push_back("BRNEG " + branchLabel);
+
+    // generate code for the true branch (if condition is true)
+    generate(node->children[1]);
+
+    // insert the branch label
+    assembly.push_back(branchLabel + ":");
+}
+
+
+/**
+ * ------------------------------------------
+ *   Generates assembly code for closing 
+ *       section of the program
+ * ------------------------------------------
+*/
+void Generator::generate_xclose() {
+    // push instruction counter
+    int push_counter = 0;
+
+    // count the number of PUSH instructions
+    for (const std::string& line : assembly) {
+        if (line.find("PUSH") != std::string::npos)
+            push_counter ++;
+    }
+
+    // add POP instructions based on PUSH count before STOP
+    for (int i = 0; i < push_counter; ++i)
+        assembly.push_back("POP");
+    
+    // append STOP instruction
+    assembly.push_back("STOP");
+
+    // add local variables after STOP and initialize to 0
+    for (const std::string& var : locals)
+        assembly.push_back(var + " 0");
 }
 
 
@@ -142,14 +195,6 @@ void Generator::output(const std::string& prefix) {
     // output each line of generated code to the file (outputs other assembly)
     for (const std::string& line : assembly)
         outputFile << line << std::endl;
-
-
-    // =====================
-    //  add local variables
-    // =====================
-    for (const std::string& var : locals)
-        outputFile << var << std::endl;
-
 
     // close the file
     outputFile.close();
