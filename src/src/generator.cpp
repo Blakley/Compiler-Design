@@ -19,12 +19,6 @@
 Generator::Generator(Node* root) : root(root) {
     // constructor function
     generate(root);
-
-    // test output
-    for (const std::string& var : locals)
-        std::cout << "variable: " << var << std::endl;
-    std::cout << "\n";
-    
 }
 
 
@@ -68,6 +62,9 @@ void Generator::generate(Node* node) {
                 // add local variable
                 if (e != std::string::npos) {
                     identifier = token.substr(s, e - s);
+                    
+                    // convert to uppercase
+                    std::transform(identifier.begin(), identifier.end(), identifier.begin(), ::toupper);
                     locals.insert(identifier);
                 }
             }           
@@ -94,6 +91,9 @@ void Generator::generate(Node* node) {
                 // add local variable
                 if (e != std::string::npos) {
                     identifier = token.substr(s, e - s);
+
+                    // convert to uppercase
+                    std::transform(identifier.begin(), identifier.end(), identifier.begin(), ::toupper);
                     locals.insert(identifier);
                 }
             }    
@@ -149,6 +149,14 @@ void Generator::output(const std::string& prefix) {
     // output each line of generated code to the file
     for (const std::string& line : assembly)
         outputFile << line << std::endl;
+
+
+    // =====================
+    //  add local variables
+    // =====================
+    for (const std::string& var : locals)
+        outputFile << var << std::endl;
+
 
     // close the file
     outputFile.close();
