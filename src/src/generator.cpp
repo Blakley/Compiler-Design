@@ -43,79 +43,72 @@ void Generator::generate(Node* node) {
     if (node == nullptr)
         return;
 
-    // ============================
-    //  handle <input> nonterminal
-    // ============================
-
-    // extract defined identifiers (local variable)
-    if (node->label == "<in>") {
-        for (const auto& token : node->tokens) {
-            // search for an identifer in the token string
-            std::string identifier;
-            size_t position = token.find("identifier: \"");
-
-            // extract variable name   
-            if (position != std::string::npos) {
-                size_t s = position + 13;
-                size_t e = token.find("\"", s);
-
-                // add local variable
-                if (e != std::string::npos) {
-                    identifier = token.substr(s, e - s);
-                    
-                    // convert to uppercase
-                    std::transform(identifier.begin(), identifier.end(), identifier.begin(), ::toupper);
-                    locals.insert(identifier);
-                }
-            }           
-        }
-    }
-
-    // ==============================
+    // ===============================
+    //  handle <input>   nonterminal
     //  handle <varList> nonterminal
     // ===============================
 
-    // extract defined identifiers (local variable)
-    if (node->label == "<varList>") {
-        // extract defined identifiers
-        for (const auto& token : node->tokens) {
-            // search for an identifer in the token string
-            std::string identifier;
-            size_t position = token.find("identifier: \"");
+    // extract defined identifiers, create local variables
+    if (node->label == "<in>" || node->label == "<varList>")
+        generate_variables(node);
 
-            // extract variable name   
-            if (position != std::string::npos) {
-                size_t s = position + 13;
-                size_t e = token.find("\"", s);
+    // ===============================
+    //  handle <if>   nonterminal
+    // ===============================    
 
-                // add local variable
-                if (e != std::string::npos) {
-                    identifier = token.substr(s, e - s);
+    if (node->label == "<if>") 
+        generate_if(node);
 
-                    // convert to uppercase
-                    std::transform(identifier.begin(), identifier.end(), identifier.begin(), ::toupper);
-                    locals.insert(identifier);
-                }
-            }    
-        }
-    }
+
 
     // traverse the children
     for (auto child : node->children)
         generate(child);
 
+}
 
-    /*
-        Notes:
-    
-        create local variable list structure:
-        variables that will be defined in assembly code
 
-        create stack variable list structure:
-        variables that will be added into the stack in the 
-        assembly code we'll use this structure whenever possible   
-    */
+/**
+ * ------------------------------------------
+ * 
+ * 
+ *  @param node : the current node
+ * ------------------------------------------
+*/
+void Generator::generate_variables(Node* node) {
+    // 
+    for (const auto& token : node->tokens) {
+        // search for an identifer in the token string
+        std::string identifier;
+        size_t position = token.find("identifier: \"");
 
+        // extract variable name   
+        if (position != std::string::npos) {
+            size_t s = position + 13;
+            size_t e = token.find("\"", s);
+
+            // add local variable
+            if (e != std::string::npos) {
+                identifier = token.substr(s, e - s);
+                
+                // convert to uppercase
+                std::transform(identifier.begin(), identifier.end(), identifier.begin(), ::toupper);
+                locals.insert(identifier);
+            }
+        }           
+    }
+}
+
+
+/**
+ * ------------------------------------------
+ * 
+ * 
+ *  @param node : the current node
+ * ------------------------------------------
+*/
+void Generator::generate_if(Node* node) {
+    // todo:
 }
 
 
@@ -146,7 +139,7 @@ void Generator::output(const std::string& prefix) {
         return;
     }
 
-    // output each line of generated code to the file
+    // output each line of generated code to the file (outputs other assembly)
     for (const std::string& line : assembly)
         outputFile << line << std::endl;
 

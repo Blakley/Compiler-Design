@@ -26,6 +26,8 @@ class Generator {
         void generate(Node* n);                    // starts code generation
         void output(const std::string& fileName);  // outputs generated code to a file
 
+        void generate_variables(Node* n);  // 
+        void generate_if(Node* n);         // 
 
 };
 
