@@ -99,64 +99,23 @@ void Generator::generate_xin(Node* node) {
  * ------------------------------------------
 */
 void Generator::generate_xout(Node* node) {
-    // ================================
-    //  collect variables and integers
-    // ================================
+    // collect variables and integers
     get_values(node);
-
-    // test: output values
-    std::cout << "\nvalues: \n";
-
-    for (const std::string& value : node_values)
-        std::cout << value << std::endl;
     
-    std::cout << "\n";
-
-    // ================================
-    //        collect operators
-    // ================================
+    // collect operators
     get_operators(node);
 
-    // test: output operators
-    std::cout << "\noperators: \n";
+    // ================================
+    //        create assembly
+    // ================================
 
-    for (const std::string& value : node_operators)
-        std::cout << value << std::endl;
-
-    std::cout << "\n";
-
-
-    /*
-    
-        1) Extract all the identifiers and integers that is used in the output (node_values)
-        2) Extract all the operators used in the output (node_operators)
-        3)
-            start by storing the first value in integers into the accumulator:
-                STORE integers[i]
-
-            next determine if the first operator:
-                variables[operator_index]
-                convert the operator to the corresponding assembly:
-                    if operator == "+", operator = ADD
-                    if operator == "-", operator = SUB
-                    ...
-
-            next, move to the next value in the integers and before putting it into the accumulator,
-            perform the last operation stored in variables
-
-            example ADD: variables[operator_index] integers[value_index]
-
-            keep doing this process until the entire <out> node (all <out> children) have been evaluted and 
-            the final value is stored in the accumulator.
-
-            finally, store the value in the accumulator in the variable "temp", which is a variable in the assembly
-            code that we've added elsewhere:
-                "STORE temp"
-
-            then, output the value:
-                "WRITE temp"
-    */
-
+    if (node_operators.size() == 0)
+        // case 1: output single value
+        assembly.push_back("WRITE " + node_values[0]);
+    else {
+        // case 2: output multiple values
+        // todo:
+    }
 
     // clear values and operators for next potential <out> node
     node_values.clear();
