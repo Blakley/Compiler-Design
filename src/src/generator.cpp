@@ -48,9 +48,6 @@ void Generator::generate(Node* node) {
     if (node == nullptr)
         return;
 
-    // test output
-    std::cout << "node: " << node->label << "\n";
-
     /**
      * ===============================
      *  handle <in> nonterminal:
@@ -60,22 +57,14 @@ void Generator::generate(Node* node) {
     if (node->label == "<in>")
         generate_xin(node);
 
-
     /**
      * ===============================
      *  // handle <out> nonterminal:
      *  <out> -> xout << <exp> ;
      * ===============================
     */
-    if (node->label == "<out>") {
-        std::cout << "\nnodes of <out>\n";
-        generate_xout(node);      
-        std::cout << "\n";
-    }
-
-    // loop
-    // if
-
+    if (node->label == "<out>")
+        generate_xout(node);     
 
     // traverse the children
     for (auto child : node->children)
@@ -85,8 +74,8 @@ void Generator::generate(Node* node) {
 
 /**
  * ------------------------------------------
- * Generates assembly code for the 
- * input statement (<in>)
+ *     Generates assembly code for the 
+ *         input statement (<in>)
  * 
  * @param node: current node
  * ------------------------------------------
@@ -103,48 +92,36 @@ void Generator::generate_xin(Node* node) {
 
 /**
  * ------------------------------------------
- * Generates assembly code for the 
- * output statement (<out>)
- * 
- * @ TODO
+ *     Generates assembly code for the 
+ *       output statement (<out>)
  * 
  * @param node: current node
  * ------------------------------------------
 */
 void Generator::generate_xout(Node* node) {
-    // list of operators used in <out>
-    std::vector<std::string> operators;
+    // ================================
+    //  collect variables and integers
+    // ================================
+    get_values(node);
 
-    // list of variables used in <out>
-    std::vector<std::string> values;
+    // test: output values
+    for (const std::string& value : node_values)
+        std::cout << value << std::endl;
 
-    // traverse the children of <out> to collect variables and integers
+    // ================================
+    //        collect operators
+    // ================================
+    get_operators(node);
+
+    // test: output operators
+    for (const std::string& value : node_operators)
+        std::cout << value << std::endl;
+
+    /*
     
-
-
-    // traverse the children of <out> to collect operators
-
-
-
-
-
-
-
-
-    // traverse the children of <out>
-    for (auto child : node->children) {
-        
-        // current node
-        Node* current = child;
-
-
-        /*
-        
-            1) Extract all the identifiers and or integers that is used in the output (integers)
-            2) Extract all the operators used in the output (variables)
-            
-            3)
-
+        1) Extract all the identifiers and integers that is used in the output (node_values)
+        2) Extract all the operators used in the output (node_operators)
+        3)
             start by storing the first value in integers into the accumulator:
                 STORE integers[i]
 
@@ -169,88 +146,13 @@ void Generator::generate_xout(Node* node) {
 
             then, output the value:
                 "WRITE temp"
-        */
+    */
 
 
-
-    }
-    
-
-
-    return;
-
-    // test output
-    std::cout << "<out> child: " << node->label << "\n";
-
-    // determine if value is integer or identifier
-    if (node->label == "<R>") {
-        // print token
-        std::cout << node->tokens[0] << "\n";
-
-        // check if the token contains "integer" or "identifier"
-        size_t pos_a = node->tokens[0].find("integer");
-        size_t pos_b = node->tokens[0].find("identifier");
-        
-        // extract int value
-        if (pos_a != std::string::npos) {
-            
-            size_t p = node->tokens[0].find(":", pos_a);
-            
-            if (p != std::string::npos) {
-                std::string s = node->tokens[0].substr(p + 1);
-                int integer = std::stoi(s);
-                std::cout << "Integer value: " << integer << "\n";
-
-                // add int to Accumulator, first value in <out> expression
-                if (operation == "")
-                    assembly.push_back("LOAD " + std::to_string(integer));
-            }
-        } 
-        else {
-            // extract variable value
-            size_t p = node->tokens[0].find("\"", pos_b);
-            
-            if (p != std::string::npos) {
-                
-                size_t e = node->tokens[0].find("\"", p + 1);
-
-                if (e != std::string::npos) {
-                    std::string varible = node->tokens[0].substr(p + 1, e - p - 1);
-
-                    // add variable to Accumulator, first value in <out> expression
-                    if (operation == "")
-                        assembly.push_back("LOAD " + varible);
-
-                    std::cout << "Identifier value: " << varible << "\n";
-                }
-            }
-        }
-    }
-
-    // traverse the children of <out>
-    for (auto child : node->children)
-        generate_xout(child);
+    // clear values and operators for next potential <out> node
+    node_values.clear();
+    node_operators.clear();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /**
@@ -354,6 +256,79 @@ std::string Generator::identify(Node* node) {
     }
 
     return value;
+}
+
+
+/**
+ * ------------------------------------------
+ *       Determines all values from 
+ *       the node and its children
+ * 
+ *  @param : the current node
+ * ------------------------------------------
+*/
+void Generator::get_values(Node* node) {
+    // locate <R> nonterminal
+    if (node->label == "<R>") {
+
+        // check if the token contains "integer" or "identifier"
+        size_t pos_a = node->tokens[0].find("integer");
+        size_t pos_b = node->tokens[0].find("identifier");
+        
+        // extract integer value
+        if (pos_a != std::string::npos) {
+            size_t p = node->tokens[0].find(":", pos_a);
+
+            if (p != std::string::npos) {
+                std::string s = node->tokens[0].substr(p + 1);
+                int integer = std::stoi(s);
+                
+                // store value
+                node_values.push_back(std::to_string(integer));
+            }
+        } 
+        else {
+            // extract variable value from token
+            size_t p = node->tokens[0].find("\"", pos_b);
+            
+            if (p != std::string::npos) {
+                size_t e = node->tokens[0].find("\"", p + 1);
+
+                if (e != std::string::npos) {
+                    std::string identifier = node->tokens[0].substr(p + 1, e - p - 1);
+                    
+                    // store value
+                    node_values.push_back(identifier);
+                }
+            }
+        }
+    }
+        
+    // traverse the children
+    for (auto child : node->children)
+        get_values(child);
+}
+
+
+/**
+ * ------------------------------------------
+ *       Determines all operators from 
+ *        the node and its children
+ * 
+ *  @param : the current node
+ * ------------------------------------------
+*/
+void Generator::get_operators(Node* node) {
+    // todo:
+
+
+
+
+
+
+    // traverse the children
+    for (auto child : node->children)
+        get_values(child);
 }
 
 
