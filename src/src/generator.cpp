@@ -105,12 +105,12 @@ void Generator::generate_xout(Node* node) {
     get_values(node);
 
     // test: output values
-    // std::cout << "\nvalues: \n";
+    std::cout << "\nvalues: \n";
 
-    // for (const std::string& value : node_values)
-    //     std::cout << value << std::endl;
+    for (const std::string& value : node_values)
+        std::cout << value << std::endl;
     
-    // std::cout << "\n";
+    std::cout << "\n";
 
     // ================================
     //        collect operators
@@ -118,8 +118,13 @@ void Generator::generate_xout(Node* node) {
     get_operators(node);
 
     // test: output operators
+    std::cout << "\noperators: \n";
+
     for (const std::string& value : node_operators)
         std::cout << value << std::endl;
+
+    std::cout << "\n";
+
 
     /*
     
@@ -265,7 +270,7 @@ std::string Generator::identify(Node* node) {
 
 /**
  * ------------------------------------------
- *       Determines all values from 
+ *       Determines all values of 
  *       the node and its children
  * 
  *  @param : the current node
@@ -316,22 +321,19 @@ void Generator::get_values(Node* node) {
 
 /**
  * ------------------------------------------
- *       Determines all operators from 
+ *       Determines all operators of 
  *        the node and its children
  * 
  *  @param : the current node
  * ------------------------------------------
 */
 void Generator::get_operators(Node* node) {
-    // todo:
-
+    // locate nodes containing operators
     if (node->label == "<exp>" 
     ||  node->label == "<M>"     
     ||  node->label == "<N>") {
-        if (!node->tokens.empty()) {
-            for (auto t : node->tokens)
-                std::cout << "instance operator: " << t << "\n";
-        }
+        for (auto t : node->tokens)
+            node_operators.push_back(t);
     }
 
     // traverse the children
