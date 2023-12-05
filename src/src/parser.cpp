@@ -395,10 +395,16 @@ void Parser::parse_exp() {
     // check for division, multiplication, addition, subtraction, and ~
     while (_token.instance == "/" || _token.instance == "*"
         || _token.instance == "+" || _token.instance == "-" || _token.instance == "~") {
+        
+        // store operator inside <exp> : [for generator]
+        exp_node->tokens.push_back(_token.instance);
+
         retrieve();  // retrieve next token
 
         // add child <M> to parent <exp>
         parse_M();
+
+        // add operator identifier
         tree.new_child(exp_node, tree.reference);
     }
 
@@ -441,7 +447,10 @@ void Parser::parse_M() {
     tree.new_child(m_node, tree.reference);
 
     // check for addition
-    while (_token.instance == "+") {
+    while (_token.instance == "+") {        
+        // store operator inside <M> : [for generator]
+        m_node->tokens.push_back(_token.instance);
+
         retrieve(); // retrieve next token
 
         // parse the next <M>
@@ -484,6 +493,9 @@ void Parser::parse_N() {
 
     // verify first token
     if (_token.instance == "~") {
+        // store operator inside <N> : [for generator]
+        n_node->tokens.push_back(_token.instance);
+
         retrieve(); // retrieve next token
 
         // parse the next <N>
@@ -500,6 +512,9 @@ void Parser::parse_N() {
         // check for subtraction
         bool unary = false;
         while (_token.instance == "-") {
+            // store operator inside <N> : [for generator]
+            n_node->tokens.push_back(_token.instance);
+
             unary = true;
             retrieve(); // retrieve next token
         }

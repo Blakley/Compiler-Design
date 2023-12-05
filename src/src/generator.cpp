@@ -105,8 +105,12 @@ void Generator::generate_xout(Node* node) {
     get_values(node);
 
     // test: output values
-    for (const std::string& value : node_values)
-        std::cout << value << std::endl;
+    // std::cout << "\nvalues: \n";
+
+    // for (const std::string& value : node_values)
+    //     std::cout << value << std::endl;
+    
+    // std::cout << "\n";
 
     // ================================
     //        collect operators
@@ -321,14 +325,18 @@ void Generator::get_values(Node* node) {
 void Generator::get_operators(Node* node) {
     // todo:
 
-
-
-
-
+    if (node->label == "<exp>" 
+    ||  node->label == "<M>"     
+    ||  node->label == "<N>") {
+        if (!node->tokens.empty()) {
+            for (auto t : node->tokens)
+                std::cout << "instance operator: " << t << "\n";
+        }
+    }
 
     // traverse the children
     for (auto child : node->children)
-        get_values(child);
+        get_operators(child);
 }
 
 
