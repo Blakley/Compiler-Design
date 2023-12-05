@@ -16,14 +16,14 @@
  * @param r : root node of AST
  * ------------------------------------------
 */
-Generator::Generator(Node* root) : root(root), label_counter(0) {
+Generator::Generator(Node* root) : root(root), label_counter(0), expression("") {
     // constructor function
 
     // start generating assembly
     generate(root);
 
     // generate ending assembly
-    generate_xclose();
+    // generate_xclose();
 }
 
 
@@ -54,25 +54,90 @@ void Generator::generate(Node* node) {
 
     // std::cout << "node label: " << node->label << std::endl;
 
-    // ===============================
-    //  handle <input>   nonterminal
-    //  handle <varList> nonterminal
-    // ===============================
+    /**
+     * ===============================
+     *  handle <out> nonterminal:
+     *  <out> -> xout << <exp> ;
+     * ===============================
+    */
+    if (node->label == "<in>")
+        generate_xin(node);
 
-    if (node->label == "<in>" || node->label == "<varList>")
-        generate_variables(node);
 
-    // ===============================
-    //    handle <if> nonterminal
-    // ===============================    
+    /**
+     * ===============================
+     *  handle <out> nonterminal:
+     *  <out> -> xout << <exp> ;
+     * ===============================
+    */
+    if (node->label == "<out>")
+        generate_xout(node);
 
-    if (node->label == "<if>") 
-        generate_if(node);
+
+    // /**
+    //  * ===============================
+    //  *  handle <in>   nonterminal
+    //  *  <in> -> xin >> identifier ; 
+    //  * 
+    //  *  handle <varList> nonterminal
+    //  *  <varList> -> identifier : integer ; | identifier : integer <varList> 
+    //  * ===============================
+    // */
+    // if (node->label == "<in>" || node->label == "<varList>")
+    //     generate_variables(node);
+
+    // /**
+    //  * ===============================
+    //  * handle <if> nonterminal
+    //  * <if> -> xcond [ <exp> <RO> <exp> ] <stat> 
+    //  * ===============================
+    // */  
+    // if (node->label == "<if>") 
+    //     generate_xcond(node);
+
 
     // traverse the children
     for (auto child : node->children)
         generate(child);
 }
+
+
+/**
+ * ------------------------------------------
+ * Generates assembly code for the 
+ * input statement (<in>)
+ * 
+ * @param node: current node
+ * ------------------------------------------
+*/
+void Generator::generate_xin(Node* node) {
+    // get value to READ in
+    std::string value = identify(node);
+
+    // append the READ instruction for input
+    if (value != "")                     
+        assembly.push_back("READ " + value);
+}
+
+
+/**
+ * ------------------------------------------
+ * Generates assembly code for the 
+ * output statement (<out>)
+ * 
+ * @param node: current node
+ * ------------------------------------------
+*/
+void Generator::generate_xout(Node* node) {
+    // todo:
+}
+
+
+
+
+
+
+
 
 
 /**
@@ -111,12 +176,12 @@ void Generator::generate_variables(Node* node) {
 /**
  * ------------------------------------------
  * Generates assembly code for the 
- * conditional (if) statement in the AST
+ * conditional (<if>)
  * 
  * @param node: current node
  * ------------------------------------------
 */
-void Generator::generate_if(Node* node) {
+void Generator::generate_xcond(Node* node) {
     // Generate code for the condition
     generate(node->children[0]); // generates code for the left side of the condition
     generate(node->children[2]); // generates code for the right side of the condition
@@ -139,7 +204,7 @@ void Generator::generate_if(Node* node) {
 /**
  * ------------------------------------------
  *   Generates assembly code for closing 
- *       section of the program
+ *   (<xclose>) section of the program
  * ------------------------------------------
 */
 void Generator::generate_xclose() {
@@ -162,6 +227,43 @@ void Generator::generate_xclose() {
     // add local variables after STOP and initialize to 0
     for (const std::string& var : locals)
         assembly.push_back(var + " 0");
+}
+
+
+
+
+
+/**
+ * ------------------------------------------
+ *    Extracts an identifier from a token  
+ * 
+ *  @param node : the current node
+ *  @return     : an identifier value
+ * ------------------------------------------
+*/
+std::string Generator::identify(Node* node) {
+    std::string value = "";
+
+    // find identifiers in the tokens
+    for (const auto& token : node->tokens) {
+        std::string identifier;
+        size_t position = token.find("identifier: \"");
+
+        if (position != std::string::npos) {
+            size_t s = position + 13;
+            size_t e = token.find("\"", s);
+
+            if (e != std::string::npos) {
+                identifier = token.substr(s, e - s);
+            
+                // convert to uppercase
+                std::transform(identifier.begin(), identifier.end(), identifier.begin(), ::toupper);
+                value = identifier;
+            }
+        }
+    }
+
+    return value;
 }
 
 
