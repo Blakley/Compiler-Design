@@ -31,16 +31,17 @@ class Generator {
         Generator(Node* root);  // Constructor 
         ~Generator();           // Destructor 
 
-        void get_values(Node* n);           // gets all values in expression
-        void get_operators(Node* n);        // gets all operators in expression
-
+        void get_values(Node* n);                  // gets all values in expression
+        void get_operators(Node* n);               // gets all operators in expression
         std::string identify(Node* n, int o);      // returns an identifier or value
+        
         void generate(Node* n);                    // starts code generation    
         void output(const std::string& fileName);  // outputs generated code to a file
         
         void generate_xin(Node* n);         // handles reading in a value
         void generate_xout(Node* n);        // handles outputting a value
         void generate_varList(Node* n);     // handles variable assignment code
+        void generate_exp(Node* n);         // handle getting the output of an expression
 
         void generate_vars(Node* n);        // handles creating the local variables
         void generate_xclose();             // handles the closing assembly code

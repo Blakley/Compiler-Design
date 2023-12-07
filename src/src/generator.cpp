@@ -66,7 +66,6 @@ void Generator::generate(Node* node) {
     if (node->label == "<out>")
         generate_xout(node);     
 
-
     /**
      * ===============================
      *  handle <varList> nonterminal:
@@ -74,7 +73,16 @@ void Generator::generate(Node* node) {
      * ===============================
     */
     if (node->label == "<varList>")
-            generate_varList(node);
+        generate_varList(node);
+
+    /**
+     * ===============================
+     *  handle <exp> nonterminal:
+     *  <exp> -> <M> / <exp> | <M> * <exp> | <M> 
+     * ===============================
+    */
+    if (node->label == "<exp>")
+        generate_exp(node);
 
 
     // traverse the children
@@ -159,6 +167,23 @@ void Generator::generate_varList(Node* node) {
         if (child->label != "<varList>")
             generate_varList(child);
     }
+}
+
+
+/**
+ * ------------------------------------------
+ *     Generates assembly code for the 
+ *       output statement (<exp>)
+ * 
+ * @param node: current node
+ * ------------------------------------------
+*/
+void Generator::generate_exp(Node* node) {
+    // todo:
+
+    // traverse child nodes
+    for (auto child : node->children)
+        generate_varList(child);
 }
 
 
