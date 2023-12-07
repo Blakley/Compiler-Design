@@ -16,7 +16,7 @@
  * @param r : root node of AST
  * ------------------------------------------
 */
-Generator::Generator(Node* root) : root(root), label_counter(0), expression("") {
+Generator::Generator(Node* root) : root(root), temp_counter(0), label_counter(0) {
     // start generating assembly
     generate(root);
 
@@ -179,11 +179,70 @@ void Generator::generate_varList(Node* node) {
  * ------------------------------------------
 */
 void Generator::generate_exp(Node* node) {
-    // todo:
+    // determine expression path
+    if (node->children.size() == 2) {
+        // <M> / <exp> or <M> * <exp> production
+        
+        // generate code for left operand <M>
+        generate_M(node->children[0]);
+
+        // generate code to store the result in a temporary variable
+        std::string temp_var = get_temp();
+        assembly.push_back("STORE " + temp_var);
+
+        // generate code for right operand <exp>
+        generate_exp(node->children[2]);
+
+        // determine operation based on the operator
+        std::string op = (node->tokens[0] == "/") ? "DIV": "MULT";
+
+        // generate code to perform the operation using the temporary variable
+        assembly.push_back(op + " " + temp_var);
+    }
+    else {
+        // <M> production
+        generate_M(node->children[0]);
+    }
 
     // traverse child nodes
     for (auto child : node->children)
-        generate_varList(child);
+        generate_exp(child);
+}
+
+
+/**
+ * ------------------------------------------
+ * Generates assembly code for the multiplication
+ * 
+ * <M> -> <N> + <M> | <N> 
+ * ------------------------------------------
+ */
+void Generator::generate_M(Node* node) {
+    // TODO: Implement logic for <M>
+}
+
+
+/**
+ * ------------------------------------------
+ * Generates assembly code for the subtraction
+ * 
+ * <N> -> <R> - <N> | ~ <N> | <R> 
+ * ------------------------------------------
+ */
+void Generator::generate_N(Node* node) {
+    // TODO: Implement logic for <N>
+}
+
+
+/**
+ * ------------------------------------------
+ * Generates assembly code for the expression
+ * 
+ * <R> -> ( <exp> ) | identifier | integer 
+ * ------------------------------------------
+ */
+void Generator::generate_R(Node* node) {
+    // TODO: Implement logic for <R>
 }
 
 
@@ -310,6 +369,22 @@ std::string Generator::identify(Node* node, int option) {
         }
     }
 
+    return output;
+}
+
+
+/**
+ * ------------------------------------------
+ *    Returns a unique temporary variable   
+ * 
+ *  @return : unique name
+ * ------------------------------------------
+*/
+std::string Generator::get_temp() {
+    // generate name based on counter value
+    std::string output = "";
+    output = "temp" + std::to_string(temp_counter);
+    temp_counter ++;
     return output;
 }
 
