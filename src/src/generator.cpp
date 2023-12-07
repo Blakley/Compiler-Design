@@ -149,16 +149,16 @@ void Generator::generate_varList(Node* node) {
     // get identifier value
     std::string value = identify(node, 1);
 
-    std::cout << "varList identifier: " << identifier << "\n";
-    std::cout << "varList value: " << value << "\n";
-
     // generate assembly
     assembly.push_back("LOAD " + value);
     assembly.push_back("STORE " + identifier);
 
     // traverse child nodes
-    for (auto child : node->children) 
-        generate_varList(child);
+    for (auto child : node->children) {
+        // skip redundant processing
+        if (child->label != "<varList>")
+            generate_varList(child);
+    }
 }
 
 
