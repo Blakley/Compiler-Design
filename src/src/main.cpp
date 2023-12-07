@@ -31,6 +31,10 @@ int main(int argc, char** argv) {
     // begin program top-down parsing
     parser.begin();
 
+    // [tree test] output generated tree
+    tree.traverse(tree.root_node(), 0);
+    std::cout << "\n";
+
     // get semantic object
     Semantics semantics(tree.root_node());
 
@@ -40,7 +44,7 @@ int main(int argc, char** argv) {
     // get generator object
     Generator generator(tree.root_node());
 
-    // output generated code to a file
+    // output generated .asm code to a file
     generator.output(scanner.filename);
 
     return 0;

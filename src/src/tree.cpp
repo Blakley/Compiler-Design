@@ -160,8 +160,9 @@ size_t Tree::tree_size() const {
  * ------------------------------------------
 */
 void Tree::traverse(Node* node, int indentation) {
-    if (node == nullptr)
+    if (node == nullptr) {
         return;
+    }
 
     // print header
     if (node == root) {

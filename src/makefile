@@ -21,6 +21,6 @@ $(EXE): $(MAIN_SRC) $(TREE_SRC) $(PARSER_SRC) $(SCANNER_SRC) $(SEMANTICS_SRC) $(
 
 # Clean up
 clean:
-	/bin/rm -f *.o $(EXE)
+	/bin/rm -f *.o *.asm $(EXE)
 
 .PHONY: all clean

@@ -59,12 +59,23 @@ void Generator::generate(Node* node) {
 
     /**
      * ===============================
-     *  // handle <out> nonterminal:
+     *  handle <out> nonterminal:
      *  <out> -> xout << <exp> ;
      * ===============================
     */
     if (node->label == "<out>")
         generate_xout(node);     
+
+
+    /**
+     * ===============================
+     *  handle <varList> nonterminal:
+     *  <varList> -> identifier : integer ; | identifier : integer <varList>
+     * ===============================
+    */
+    if (node->label == "<varList>")
+            generate_varList(node);
+
 
     // traverse the children
     for (auto child : node->children)
@@ -82,7 +93,7 @@ void Generator::generate(Node* node) {
 */
 void Generator::generate_xin(Node* node) {
     // get value to READ in
-    std::string value = identify(node);
+    std::string value = identify(node, 0);
 
     // append the READ instruction for input
     if (value != "")                     
@@ -125,6 +136,34 @@ void Generator::generate_xout(Node* node) {
 
 /**
  * ------------------------------------------
+ *     Generates assembly code for the 
+ *       output statement (<varList>)
+ * 
+ * @param node: current node
+ * ------------------------------------------
+*/
+void Generator::generate_varList(Node* node) {
+    // get identifier name
+    std::string identifier = identify(node, 0);
+    
+    // get identifier value
+    std::string value = identify(node, 1);
+
+    std::cout << "varList identifier: " << identifier << "\n";
+    std::cout << "varList value: " << value << "\n";
+
+    // generate assembly
+    assembly.push_back("LOAD " + value);
+    assembly.push_back("STORE " + identifier);
+
+    // traverse child nodes
+    for (auto child : node->children) 
+        generate_varList(child);
+}
+
+
+/**
+ * ------------------------------------------
  *   Generates assembly code for closing 
  *   (<xclose>) section of the program
  * ------------------------------------------
@@ -154,7 +193,7 @@ void Generator::generate_xclose() {
         assembly.push_back(var + " 0");
 
     // append temp variable
-    assembly.push_back("temp 0 ");
+    // assembly.push_back("temp 0 ");
 }
 
 
@@ -198,32 +237,55 @@ void Generator::generate_vars(Node* node) {
 
 /**
  * ------------------------------------------
- *    Extracts first identifier from node  
+ *  Extracts first variable/value from node  
  * 
- *  @param node : the current node
- *  @return     : an identifier value
+ *  @param node   : the current node
+ *  @param option : what we want to extract
+ *                  0 for name, 1 for value
+ * 
+ *  @return       : a variable name or value
  * ------------------------------------------
 */
-std::string Generator::identify(Node* node) {
-    std::string value = "";
+std::string Generator::identify(Node* node, int option) {
+    // output string
+    std::string output = "";
 
-    // find identifiers in the tokens
     for (const auto& token : node->tokens) {
-        std::string identifier;
-        size_t position = token.find("identifier: \"");
+        if (option == 0) {
+            // extract identifier name
+            size_t position = token.find("identifier: \"");
+            
+            if (position != std::string::npos) {
+                size_t start = position + 13;
+                size_t end = token.find("\"", start);
+                
+                if (end != std::string::npos) {
+                    output = token.substr(start, end - start);
+                    break; 
+                }
+            }
+        } 
+        else {
+            // extract identifier value
+            size_t position = token.find("integer:");
 
-        if (position != std::string::npos) {
-            size_t s = position + 13;
-            size_t e = token.find("\"", s);
+            if (position != std::string::npos) {
+                size_t spacePos = token.find(" ", position + 8);
+                
+                if (spacePos != std::string::npos) {
+                    output = token.substr(spacePos + 1);
+                    size_t spaceAfterInteger = output.find(" ");
 
-            if (e != std::string::npos) {
-                identifier = token.substr(s, e - s);
-                return identifier;
+                    if (spaceAfterInteger != std::string::npos) 
+                        output = output.substr(0, spaceAfterInteger);
+                    
+                    break; 
+                }
             }
         }
     }
 
-    return value;
+    return output;
 }
 
 

@@ -1,0 +1,6 @@
+READ x1
+LOAD 1
+STORE x1
+WRITE 1
+STOP
+x1 0
