@@ -179,29 +179,36 @@ void Generator::generate_varList(Node* node) {
  * ------------------------------------------
 */
 void Generator::generate_exp(Node* node) {
-    // determine expression path
-    if (node->children.size() == 2) {
-        // <M> / <exp> or <M> * <exp> production
+    // determine expression path    
+    if (node->label == "<exp>") {
         
-        // generate code for left operand <M>
-        generate_M(node->children[0]);
+        if (node->children.size() == 2) {
+            // <M> / <exp> or <M> * <exp> production
+            // <exp> will show up as <M>
 
-        // generate code to store the result in a temporary variable
-        std::string temp_var = get_temp();
-        assembly.push_back("STORE " + temp_var);
+             std::cout << "from <exp> --> <M> / <exp> or <M> * <exp> production\n";
 
-        // generate code for right operand <exp>
-        generate_exp(node->children[2]);
+            // generate code for left operand <M>
+            generate_M(node->children[0]);
 
-        // determine operation based on the operator
-        std::string op = (node->tokens[0] == "/") ? "DIV": "MULT";
+            std::string temp_var = get_temp();
+            assembly.push_back("STORE " + temp_var);
 
-        // generate code to perform the operation using the temporary variable
-        assembly.push_back(op + " " + temp_var);
-    }
-    else {
-        // <M> production
-        generate_M(node->children[0]);
+            // generate code for right operand <M>
+            generate_M(node->children[1]);
+
+            // determine operation based on the operator
+            std::string op = (node->tokens[0] == "/") ? "DIV" : "MULT";
+
+            // generate code to perform the operation using the temporary variable
+            assembly.push_back(op + " " + temp_var);
+        }
+
+         // <M> production
+        if (node->children.size() == 1 && node->children[0]->label == "<M>") {
+            std::cout << "from <exp> --> <M> production\n";
+            generate_M(node->children[0]);
+        }
     }
 
     // traverse child nodes

@@ -1,6 +1,9 @@
+xdata x1 : 1 
+      x2 : 2 ;
 xopen 
   xin >> x1 ;
-  { xdata x1 : 1 ;
-    xout << 1 * 2 ;
+  { 
+    xlet x1 x1 - 2 ;
+	xlet x2 x1 * 3 ;
   }
 xclose

@@ -1,0 +1,10 @@
+LOAD 1
+STORE x1
+LOAD 2
+STORE x2
+READ x1
+STORE temp0
+MULT temp0
+STOP
+x1 0
+x2 0
