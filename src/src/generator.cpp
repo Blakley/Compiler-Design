@@ -85,6 +85,13 @@ void Generator::generate(Node* node) {
         generate_exp(node);
 
 
+    // if (node->label == "<R>")
+    //     generate_R(node);
+
+    if (node->label == "<N>")
+        generate_N(node);
+
+
     // traverse the children
     for (auto child : node->children)
         generate(child);
@@ -119,26 +126,26 @@ void Generator::generate_xin(Node* node) {
 */
 void Generator::generate_xout(Node* node) {
     // collect variables and integers
-    get_values(node);
+    // get_values(node);
     
-    // collect operators
-    get_operators(node);
+    // // collect operators
+    // get_operators(node);
 
     // ================================
     //        create assembly
     // ================================
 
-    if (node_operators.size() == 0)
-        // case 1: output single value
-        assembly.push_back("WRITE " + node_values[0]);
-    else {
-        // case 2: output multiple values
-        // todo:
-    }
+    // if (node_operators.size() == 0)
+    //     // case 1: output single value
+    //     assembly.push_back("WRITE " + node_values[0]);
+    // else {
+    //     // case 2: output multiple values
+    //     // todo:
+    // }
 
-    // clear values and operators for next potential <out> node
-    node_values.clear();
-    node_operators.clear();
+    // // // clear values and operators for next potential <out> node
+    // node_values.clear();
+    // node_operators.clear();
 }
 
 
@@ -180,40 +187,40 @@ void Generator::generate_varList(Node* node) {
 */
 void Generator::generate_exp(Node* node) {
     // determine expression path    
-    if (node->label == "<exp>") {
+    // if (node->label == "<exp>") {
         
-        if (node->children.size() == 2) {
-            // <M> / <exp> or <M> * <exp> production
-            // <exp> will show up as <M>
+    //     if (node->children.size() == 2) {
+    //         // <M> / <exp> or <M> * <exp> production
+    //         // <exp> will show up as <M>
 
-             std::cout << "from <exp> --> <M> / <exp> or <M> * <exp> production\n";
+    //          std::cout << "from <exp> --> <M> / <exp> or <M> * <exp> production\n";
 
-            // generate code for left operand <M>
-            generate_M(node->children[0]);
+    //         // generate code for left operand <M>
+    //         generate_M(node->children[0]);
 
-            std::string temp_var = get_temp();
-            assembly.push_back("STORE " + temp_var);
+    //         std::string temp_var = get_temp();
+    //         assembly.push_back("STORE " + temp_var);
 
-            // generate code for right operand <M>
-            generate_M(node->children[1]);
+    //         // generate code for right operand <M>
+    //         generate_M(node->children[1]);
 
-            // determine operation based on the operator
-            std::string op = (node->tokens[0] == "/") ? "DIV" : "MULT";
+    //         // determine operation based on the operator
+    //         std::string op = (node->tokens[0] == "/") ? "DIV" : "MULT";
 
-            // generate code to perform the operation using the temporary variable
-            assembly.push_back(op + " " + temp_var);
-        }
+    //         // generate code to perform the operation using the temporary variable
+    //         assembly.push_back(op + " " + temp_var);
+    //     }
 
-         // <M> production
-        if (node->children.size() == 1 && node->children[0]->label == "<M>") {
-            std::cout << "from <exp> --> <M> production\n";
-            generate_M(node->children[0]);
-        }
-    }
+    //      // <M> production
+    //     if (node->children.size() == 1 && node->children[0]->label == "<M>") {
+    //         std::cout << "from <exp> --> <M> production\n";
+    //         generate_M(node->children[0]);
+    //     }
+    // }
 
-    // traverse child nodes
-    for (auto child : node->children)
-        generate_exp(child);
+    // // traverse child nodes
+    // for (auto child : node->children)
+    //     generate_exp(child);
 }
 
 
@@ -237,7 +244,37 @@ void Generator::generate_M(Node* node) {
  * ------------------------------------------
  */
 void Generator::generate_N(Node* node) {
-    // TODO: Implement logic for <N>
+    // determine node type
+    std::cout << "\n<N> node: " << node->label << "\n";
+    std::cout << "<N> node children: " << node->children.size() << "\n";
+    for(auto t: node->tokens)
+        std::cout << "<N> node token: " << node->tokens[0] << "\n";
+    std::cout << "\n";
+
+    if (node->children.size() == 2) {
+        // <R> - <N> production
+        // count number of - tokens to determine operation
+        int negatives = node->tokens.size();
+
+        std::cout << "generate_N:\t<R> - <N> production\n";
+        std::cout << "generate_N:\t<R> - <N> " << negatives << " negative values operations\n";
+
+        if (negatives % 2 == 0) {
+            // even amount, make addition instead
+            std::cout << "generate_N:\t<R> - <N>, will become addition instead\n";
+        }
+    }
+    else {
+        if (!node->tokens.empty()) {
+            //  ~ <N> production
+            std::cout << "generate_N:\t~ <N> production\n";
+        }
+        else {
+            // <R> production
+            std::cout << "generate_N:\tchild node: " << node->children[0]->label << "\n";
+            generate_R(node->children[0]);
+        }
+    }
 }
 
 
@@ -249,7 +286,27 @@ void Generator::generate_N(Node* node) {
  * ------------------------------------------
  */
 void Generator::generate_R(Node* node) {
-    // TODO: Implement logic for <R>
+    // determine node type
+    std::string value = identify(node, 0);
+
+    if (value == "") {
+        // determine if node is integer type
+        value = identify(node, 1);
+
+        if (value == "") {
+            // <R> is (<exp>)
+            std::cout << "generate_R:\tchild node is <exp> type: " << node->children[0]->label << "\n";
+            generate_exp(node->children[0]);
+        }
+        else {
+            // <R> is integer
+            std::cout << "generate_R:\t <R> Node is integer type: " << node->label << "\n";
+        }
+    }
+    else {
+        // <R> is identifier
+        std::cout << "generate_R :\t <R> Node is identifier type: " << node->label << "\n";
+    }
 }
 
 
