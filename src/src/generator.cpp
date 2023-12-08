@@ -84,13 +84,8 @@ void Generator::generate(Node* node) {
     if (node->label == "<exp>")
         generate_exp(node);
 
-
-    // if (node->label == "<R>")
-    //     generate_R(node);
-
-    if (node->label == "<N>")
-        generate_N(node);
-
+    if (node->label == "<M>")
+        generate_M(node);
 
     // traverse the children
     for (auto child : node->children)
@@ -232,7 +227,23 @@ void Generator::generate_exp(Node* node) {
  * ------------------------------------------
  */
 void Generator::generate_M(Node* node) {
-    // TODO: Implement logic for <M>
+    // determine node type
+    std::cout << "\n<M> node: " << node->label << "\n";
+    std::cout << "<M> node children: " << node->children.size() << "\n";
+    for(auto t: node->tokens)
+        std::cout << "<M> node token: " << node->tokens[0] << "\n";
+    std::cout << "\n";
+
+    if (node->children.size() == 2) {
+        // <N> + <M> production
+        std::cout << "generate_M:\t<N> + <M> production\n";
+    }
+    else {
+        // <N> production
+        std::cout << "generate_M:\t<N> production\n";
+        std::cout << "generate_M:\tchild node: " << node->children[0]->label << "\n";
+        generate_N(node->children[0]);
+    }
 }
 
 
@@ -245,11 +256,11 @@ void Generator::generate_M(Node* node) {
  */
 void Generator::generate_N(Node* node) {
     // determine node type
-    std::cout << "\n<N> node: " << node->label << "\n";
-    std::cout << "<N> node children: " << node->children.size() << "\n";
-    for(auto t: node->tokens)
-        std::cout << "<N> node token: " << node->tokens[0] << "\n";
-    std::cout << "\n";
+    // std::cout << "\n<N> node: " << node->label << "\n";
+    // std::cout << "<N> node children: " << node->children.size() << "\n";
+    // for(auto t: node->tokens)
+    //     std::cout << "<N> node token: " << node->tokens[0] << "\n";
+    // std::cout << "\n";
 
     if (node->children.size() == 2) {
         // <R> - <N> production
