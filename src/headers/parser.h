@@ -19,6 +19,10 @@ class Parser {
         Scanner& scanner; // Scanner reference
         Tree& tree;       // Tree reference
 
+        // program operators & relational operators
+        std::vector<std::string> _operators;   // store in <program>
+        std::vector<std::string> _relationals; // store in <program> after operators
+
     public:
         ~Parser();                          // Destructor
         Parser(Scanner& scanner, Tree& t);  // Constructor

@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/03/2023
+    Date: 12/09/2023
     Description: 
         Generator function declarations
 */
@@ -17,6 +17,9 @@
  * ------------------------------------------
 */
 Generator::Generator(Node* root) : root(root), temp_counter(0), label_counter(0) {
+    // add appropriate operators
+    configure();
+    
     // start generating assembly
     generate(root);
 
@@ -27,12 +30,32 @@ Generator::Generator(Node* root) : root(root), temp_counter(0), label_counter(0)
 
 /**
  * ------------------------------------------
- *              Destructor
+ *               Destructor
  * ------------------------------------------
 */
 Generator::~Generator() {
-    // clear the locals set
-    locals.clear();
+    // destructor function
+}
+
+
+/**
+ * ------------------------------------------
+ *   Setup appropriate program operators
+ * ------------------------------------------
+*/
+void Generator::configure() {
+    // relational operator flag
+    bool relational = false;
+
+    for (auto _operator : root->tokens) {
+        if (_operator == "?")
+            relational = true;
+        
+        if (relational)
+            _relationals.push_back(_operator);
+        else
+            _operators.push_back(_operator);
+    }
 }
 
 
@@ -47,6 +70,15 @@ void Generator::generate(Node* node) {
     // ensure the node is not null
     if (node == nullptr)
         return;
+
+    /**
+     * ===============================
+     *  handle <varList> nonterminal:
+     *  <varList> -> identifier : integer ; | identifier : integer <varList>
+     * ===============================
+    */
+    if (node->label == "<varList>")
+        generate_varList(node);
 
     /**
      * ===============================
@@ -66,14 +98,6 @@ void Generator::generate(Node* node) {
     if (node->label == "<out>")
         generate_xout(node);     
 
-    /**
-     * ===============================
-     *  handle <varList> nonterminal:
-     *  <varList> -> identifier : integer ; | identifier : integer <varList>
-     * ===============================
-    */
-    if (node->label == "<varList>")
-        generate_varList(node);
 
     /**
      * ===============================
@@ -84,63 +108,10 @@ void Generator::generate(Node* node) {
     if (node->label == "<exp>")
         generate_exp(node);
 
-    if (node->label == "<M>")
-        generate_M(node);
 
     // traverse the children
     for (auto child : node->children)
         generate(child);
-}
-
-
-/**
- * ------------------------------------------
- *     Generates assembly code for the 
- *         input statement (<in>)
- * 
- * @param node: current node
- * ------------------------------------------
-*/
-void Generator::generate_xin(Node* node) {
-    // get value to READ in
-    std::string value = identify(node, 0);
-
-    // append the READ instruction for input
-    if (value != "")                     
-        assembly.push_back("READ " + value);
-}
-
-
-/**
- * ------------------------------------------
- *     Generates assembly code for the 
- *       output statement (<out>)
- * 
- * @param node: current node
- * ------------------------------------------
-*/
-void Generator::generate_xout(Node* node) {
-    // collect variables and integers
-    // get_values(node);
-    
-    // // collect operators
-    // get_operators(node);
-
-    // ================================
-    //        create assembly
-    // ================================
-
-    // if (node_operators.size() == 0)
-    //     // case 1: output single value
-    //     assembly.push_back("WRITE " + node_values[0]);
-    // else {
-    //     // case 2: output multiple values
-    //     // todo:
-    // }
-
-    // // // clear values and operators for next potential <out> node
-    // node_values.clear();
-    // node_operators.clear();
 }
 
 
@@ -175,149 +146,66 @@ void Generator::generate_varList(Node* node) {
 /**
  * ------------------------------------------
  *     Generates assembly code for the 
+ *         input statement (<in>)
+ * 
+ * @param node: current node
+ * ------------------------------------------
+*/
+void Generator::generate_xin(Node* node) {
+    // get value to READ in
+    std::string value = identify(node, 0);
+
+    // append the READ instruction for input
+    if (value != "")                     
+        assembly.push_back("READ " + value);
+}
+
+
+/**
+ * ------------------------------------------
+ *     Generates assembly code for the 
+ *       output statement (<out>)
+ * 
+ * @param node: current node
+ * ------------------------------------------
+*/
+void Generator::generate_xout(Node* node) {
+    // collect variables and integers
+    get_values(node);
+    
+    // ================================
+    //        create assembly
+    // ================================
+
+    if (_operators.size() == 0) {
+        // case 1: output single variable or integer
+        assembly.push_back("WRITE " + _values[0]);
+        _values.clear();
+    }
+    else {
+        // case 2: todo
+    }
+}
+
+
+/**
+ * ------------------------------------------
+ *     Generates assembly code for the 
  *       output statement (<exp>)
  * 
  * @param node: current node
  * ------------------------------------------
 */
 void Generator::generate_exp(Node* node) {
-    // determine expression path    
-    // if (node->label == "<exp>") {
-        
-    //     if (node->children.size() == 2) {
-    //         // <M> / <exp> or <M> * <exp> production
-    //         // <exp> will show up as <M>
-
-    //          std::cout << "from <exp> --> <M> / <exp> or <M> * <exp> production\n";
-
-    //         // generate code for left operand <M>
-    //         generate_M(node->children[0]);
-
-    //         std::string temp_var = get_temp();
-    //         assembly.push_back("STORE " + temp_var);
-
-    //         // generate code for right operand <M>
-    //         generate_M(node->children[1]);
-
-    //         // determine operation based on the operator
-    //         std::string op = (node->tokens[0] == "/") ? "DIV" : "MULT";
-
-    //         // generate code to perform the operation using the temporary variable
-    //         assembly.push_back(op + " " + temp_var);
-    //     }
-
-    //      // <M> production
-    //     if (node->children.size() == 1 && node->children[0]->label == "<M>") {
-    //         std::cout << "from <exp> --> <M> production\n";
-    //         generate_M(node->children[0]);
-    //     }
-    // }
-
-    // // traverse child nodes
-    // for (auto child : node->children)
-    //     generate_exp(child);
-}
-
-
-/**
- * ------------------------------------------
- * Generates assembly code for the multiplication
- * 
- * <M> -> <N> + <M> | <N> 
- * ------------------------------------------
- */
-void Generator::generate_M(Node* node) {
-    // determine node type
-    std::cout << "\n<M> node: " << node->label << "\n";
-    std::cout << "<M> node children: " << node->children.size() << "\n";
-    for(auto t: node->tokens)
-        std::cout << "<M> node token: " << node->tokens[0] << "\n";
-    std::cout << "\n";
-
-    if (node->children.size() == 2) {
-        // <N> + <M> production
-        std::cout << "generate_M:\t<N> + <M> production\n";
-    }
-    else {
-        // <N> production
-        std::cout << "generate_M:\t<N> production\n";
-        std::cout << "generate_M:\tchild node: " << node->children[0]->label << "\n";
-        generate_N(node->children[0]);
-    }
-}
-
-
-/**
- * ------------------------------------------
- * Generates assembly code for the subtraction
- * 
- * <N> -> <R> - <N> | ~ <N> | <R> 
- * ------------------------------------------
- */
-void Generator::generate_N(Node* node) {
-    // determine node type
-    // std::cout << "\n<N> node: " << node->label << "\n";
-    // std::cout << "<N> node children: " << node->children.size() << "\n";
-    // for(auto t: node->tokens)
-    //     std::cout << "<N> node token: " << node->tokens[0] << "\n";
-    // std::cout << "\n";
-
-    if (node->children.size() == 2) {
-        // <R> - <N> production
-        // count number of - tokens to determine operation
-        int negatives = node->tokens.size();
-
-        std::cout << "generate_N:\t<R> - <N> production\n";
-        std::cout << "generate_N:\t<R> - <N> " << negatives << " negative values operations\n";
-
-        if (negatives % 2 == 0) {
-            // even amount, make addition instead
-            std::cout << "generate_N:\t<R> - <N>, will become addition instead\n";
-        }
-    }
-    else {
-        if (!node->tokens.empty()) {
-            //  ~ <N> production
-            std::cout << "generate_N:\t~ <N> production\n";
-        }
-        else {
-            // <R> production
-            std::cout << "generate_N:\tchild node: " << node->children[0]->label << "\n";
-            generate_R(node->children[0]);
-        }
-    }
-}
-
-
-/**
- * ------------------------------------------
- * Generates assembly code for the expression
- * 
- * <R> -> ( <exp> ) | identifier | integer 
- * ------------------------------------------
- */
-void Generator::generate_R(Node* node) {
-    // determine node type
-    std::string value = identify(node, 0);
-
-    if (value == "") {
-        // determine if node is integer type
-        value = identify(node, 1);
-
-        if (value == "") {
-            // <R> is (<exp>)
-            std::cout << "generate_R:\tchild node is <exp> type: " << node->children[0]->label << "\n";
-            generate_exp(node->children[0]);
-        }
-        else {
-            // <R> is integer
-            std::cout << "generate_R:\t <R> Node is integer type: " << node->label << "\n";
-        }
-    }
-    else {
-        // <R> is identifier
-        std::cout << "generate_R :\t <R> Node is identifier type: " << node->label << "\n";
-    }
+    // todo:
+    /*
+        1)
+        2)
+        3)
+        4)
+        5)
+    
+    */
 }
 
 
@@ -327,20 +215,7 @@ void Generator::generate_R(Node* node) {
  *   (<xclose>) section of the program
  * ------------------------------------------
 */
-void Generator::generate_xclose() {
-    // push instruction counter
-    int push_counter = 0;
-
-    // count the number of PUSH instructions
-    for (const std::string& line : assembly) {
-        if (line.find("PUSH") != std::string::npos)
-            push_counter ++;
-    }
-
-    // add POP instructions based on PUSH count before STOP
-    for (int i = 0; i < push_counter; ++i)
-        assembly.push_back("POP");
-    
+void Generator::generate_xclose() {   
     // append STOP instruction
     assembly.push_back("STOP");
 
@@ -350,9 +225,6 @@ void Generator::generate_xclose() {
     // add local variables after STOP and initialize to 0
     for (const std::string& var : locals)
         assembly.push_back(var + " 0");
-
-    // append temp variable
-    // assembly.push_back("temp 0 ");
 }
 
 
@@ -474,12 +346,12 @@ std::string Generator::get_temp() {
 */
 void Generator::get_values(Node* node) {
     // locate <R> nonterminal
-    if (node->label == "<R>") {
+    if (node->label == "<R>" && node->tokens.size() > 0) {
 
         // check if the token contains "integer" or "identifier"
         size_t pos_a = node->tokens[0].find("integer");
         size_t pos_b = node->tokens[0].find("identifier");
-        
+            
         // extract integer value
         if (pos_a != std::string::npos) {
             size_t p = node->tokens[0].find(":", pos_a);
@@ -489,7 +361,7 @@ void Generator::get_values(Node* node) {
                 int integer = std::stoi(s);
                 
                 // store value
-                node_values.push_back(std::to_string(integer));
+                _values.push_back(std::to_string(integer));
             }
         } 
         else {
@@ -503,7 +375,7 @@ void Generator::get_values(Node* node) {
                     std::string identifier = node->tokens[0].substr(p + 1, e - p - 1);
                     
                     // store value
-                    node_values.push_back(identifier);
+                    _values.push_back(identifier);
                 }
             }
         }
@@ -512,29 +384,6 @@ void Generator::get_values(Node* node) {
     // traverse the children
     for (auto child : node->children)
         get_values(child);
-}
-
-
-/**
- * ------------------------------------------
- *       Determines all operators of 
- *        the node and its children
- * 
- *  @param : the current node
- * ------------------------------------------
-*/
-void Generator::get_operators(Node* node) {
-    // locate nodes containing operators
-    if (node->label == "<exp>" 
-    ||  node->label == "<M>"     
-    ||  node->label == "<N>") {
-        for (auto t : node->tokens)
-            node_operators.push_back(t);
-    }
-
-    // traverse the children
-    for (auto child : node->children)
-        get_operators(child);
 }
 
 

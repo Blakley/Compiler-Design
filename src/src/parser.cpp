@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/23/2023
+    Date: 12/09/2023
     Description: 
         Parser function declarations
 */
@@ -76,12 +76,29 @@ void Parser::parse_program() {
     retrieve(); 
     if (_token.id != eof_tk)
         error("EOF", _token.instance);
+
+    // store expression operators
+    for (auto o : _operators)
+        tree.root_node()->tokens.push_back(o);
+    
+    // store relational operators
+    if (_relationals.size() >= 1) {
+        // append operator list seperator
+        tree.root_node()->tokens.push_back("?");
+
+        for (auto r : _relationals) 
+            tree.root_node()->tokens.push_back(r);
+    } 
+
+    // clear lists
+    _operators.clear();
+    _relationals.clear();
 }
 
 
 /**
  * ------------------------------------------
- *    Implementation for parsing <vars>
+ *     Implementation for parsing <vars>
  *  
  *  BNF production rule: 
  *      <vars> -> empty | xdata [or identifier] <varList>
@@ -395,9 +412,8 @@ void Parser::parse_exp() {
     // check for division, multiplication, addition, subtraction, and ~
     while (_token.instance == "/" || _token.instance == "*"
         || _token.instance == "+" || _token.instance == "-" || _token.instance == "~") {
-        
-        // store operator inside <exp> : [for generator]
-        exp_node->tokens.push_back(_token.instance);
+            
+        _operators.push_back(_token.instance); // store operator
 
         retrieve();  // retrieve next token
 
@@ -448,9 +464,8 @@ void Parser::parse_M() {
 
     // check for addition
     while (_token.instance == "+") {        
-        // store operator inside <M> : [for generator]
-        m_node->tokens.push_back(_token.instance);
-
+        _operators.push_back(_token.instance); // store operator
+        
         retrieve(); // retrieve next token
 
         // parse the next <M>
@@ -493,8 +508,7 @@ void Parser::parse_N() {
 
     // verify first token
     if (_token.instance == "~") {
-        // store operator inside <N> : [for generator]
-        n_node->tokens.push_back(_token.instance);
+        _operators.push_back(_token.instance); // store operator
 
         retrieve(); // retrieve next token
 
@@ -512,8 +526,7 @@ void Parser::parse_N() {
         // check for subtraction
         bool unary = false;
         while (_token.instance == "-") {
-            // store operator inside <N> : [for generator]
-            n_node->tokens.push_back(_token.instance);
+            _operators.push_back(_token.instance); // store operator
 
             unary = true;
             retrieve(); // retrieve next token
@@ -742,7 +755,7 @@ void Parser::parse_out() {
     // add child <exp> to parent <out>
     parse_exp();
     tree.new_child(out_node, tree.reference);
-
+    
     // verify next expected token
     if (_token.instance != ";") 
         error(";", _token.instance);
@@ -979,8 +992,13 @@ void Parser::parse_RO() {
     // check for the possible relational operators
     if (_token.instance == "<<" || _token.instance == ">>" ||
         _token.instance == "<"  || _token.instance == ">" ||
-        _token.instance == "="  || _token.instance == "%")
-        retrieve();  // consume the relational operator
+        _token.instance == "="  || _token.instance == "%") {   
+
+        _relationals.push_back(_token.instance); // store operator
+
+        // consume the relational operator
+        retrieve();  
+    }
     else
         error("relational operator", _token.instance);
 

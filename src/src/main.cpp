@@ -49,3 +49,36 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
+
+/*
+
+<exp> parsing
+
+
+====================
+ Preorder Traversal
+====================
+<program> 
+    <vars> 
+        <varList> identifier: "x1" line: 1 integer: 1 line: 1 
+            <varList> identifier: "x2" line: 2 integer: 2 line: 2 
+                <varList> identifier: "x3" line: 3 integer: 3 line: 3 
+    <stats> 
+        <stat> 
+            <out> 
+                <exp> 
+                    <M> 
+                        <N> 
+                            <R> integer: 1 line: 5 
+        <mStat> 
+
+
+For entire program:
+    a) store the operators, as they should be executed, from the <exp> node's token
+    b) get a list of the values or identifers stored in <R>
+    c) create necessary assembly to execute code
+    d) make sure to remove the operators from the list that have already been consumed 
+    (do same with relational operators)
+
+*/
