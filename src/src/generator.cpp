@@ -16,10 +16,7 @@
  * @param r : root node of AST
  * ------------------------------------------
 */
-Generator::Generator(Node* root) : root(root), temp_counter(0), label_counter(0) {
-    // add appropriate operators
-    configure();
-    
+Generator::Generator(Node* root) : root(root), temp_counter(0), label_counter(0) {    
     // start generating assembly
     generate(root);
 
@@ -35,27 +32,6 @@ Generator::Generator(Node* root) : root(root), temp_counter(0), label_counter(0)
 */
 Generator::~Generator() {
     // destructor function
-}
-
-
-/**
- * ------------------------------------------
- *   Setup appropriate program operators
- * ------------------------------------------
-*/
-void Generator::configure() {
-    // relational operator flag
-    bool relational = false;
-
-    for (auto _operator : root->tokens) {
-        if (_operator == "?")
-            relational = true;
-        
-        if (relational)
-            _relationals.push_back(_operator);
-        else
-            _operators.push_back(_operator);
-    }
 }
 
 
@@ -160,21 +136,16 @@ void Generator::generate_xin(Node* node) {
  * ------------------------------------------
 */
 void Generator::generate_xout(Node* node) {
-    // collect variables and integers
-    get_values(node);
-    
+
     // ================================
     //        create assembly
     // ================================
 
-    if (_operators.size() == 0) {
-        // case 1: output single variable or integer
-        assembly.push_back("WRITE " + _values[0]);
-        _values.clear();
-    }
-    else {
-        // case 2: todo
-    }
+    // get evaluated expression
+    std::string output = generate_exp(node->children[0]);
+
+    // generate assembly
+    assembly.push_back("WRITE " + output);
 }
 
 
@@ -183,51 +154,96 @@ void Generator::generate_xout(Node* node) {
  *     Generates assembly code for the 
  *          current <exp> node
  * 
- * @param node: current node
+ * @param node : current node
+ * @return     : temporary variable
  * ------------------------------------------
 */
-int Generator::generate_exp(Node* node) {
-    int result = 0;
-
-    /*
-        todo:
-
-        re-decorate tree where each <exp> has its own operators and values
-        <RO> nodes have contain their operators
-
+std::string Generator::generate_exp(Node* node) {
+    // case 1: single value
+    if (node->tokens.size() == 1)
+        return node->tokens[0];
     
-        call get_values() which will get all the variable and or integer values
-        contained in the expression and store them in a vector "_values"
+    // case 2: multi-level expression
 
-        next, we'll
+    // ========================
+    //     setup variables
+    //=========================
 
-        (each expression needs a list of associated operators)
-        (<exp> to operators mapping)
+    // create new temporary variable
+    std::string temporary = get_temp();
 
+    // stores a temporary variable for the inner expressions
+    std::string inner_temporary = "";
 
-        iterate values and operators of current expression and calculate
-        from left to right the resulting value
-        make sure to remove the operators from the list that have already been consumed 
+    // stores the unconsumed operator
+    std::string unconsumed_operator = "";
 
-        generate a temporary value for each <exp>
+    // stores the previous value
+    std::string previous_value = "";
 
-        each <exp> has a unique output value
+    // stores the number of consecutive "-" signs
+    // todo:
+    // int consecutive = 0;
+    
+    // expression index & expression size
+    // int index = 0;
+    // int size = node->tokens.size();
 
-        generate the required assembly for the <exp> output
-        and store it in a temporary variable
+    // ========================
+    //   evaluate expression
+    //=========================
 
-        if a node like <out>, <if>, etc .. called this function,
-        they will use the appropriate created temporary value generated 
-        
-        1) 
-        2)
-        3)
-        4)
-        5)
+    // evaluate expression & generate required assembly
+    for (auto value : node->tokens) {
+        // determine expression value
+        if (value == "~") {
+            // negate accumulator
+            assembly.push_back("MULT -1"); 
+        }
+        else if (value == "+" || value == "-" || value == "*" || value == "/") {
+            // ========================
+            //   handle operators
+            //=========================
+            
+            // value is an operator
+            unconsumed_operator =  
+                (value == "+") ? "ADD" :
+                (value == "-") ? "SUB" :
+                (value == "*") ? "MULT" : "DIV";
+        }        
+        else if (value == "(") {
+            // todo : (later)
+            // create temporary variable for inner expression
+        }
+        else if (value == ")") {
+            // todo: (later)
+            // stop evaluating inner expresion
+        }
+        else {
+            // ===============================
+            //   handle identifers & integers
+            //================================
 
-    */
-   
-   return result;
+            if (previous_value.empty()) {
+                // load first value into the accumulator
+                assembly.push_back("LOAD " + value); 
+            }
+            else {
+                // apply the unconsumed operator to the previous value
+                assembly.push_back(unconsumed_operator + " " + previous_value);
+
+                // reset the unconsumed operator
+                unconsumed_operator = "";
+            }
+
+            // update previous_value
+            previous_value = value;
+        }
+    }
+
+    // store evaluated expression, from accumulator, in temporary variable 
+    assembly.push_back("STORE " + temporary);
+    return temporary;
 }
 
 
@@ -354,58 +370,11 @@ std::string Generator::get_temp() {
     std::string output = "";
     output = "temp" + std::to_string(temp_counter);
     temp_counter ++;
+
+    // add temporary value to locals
+    locals.insert(output);
+
     return output;
-}
-
-
-/**
- * ------------------------------------------
- *       Determines all values of 
- *       the node and its children
- * 
- *  @param : the current node
- * ------------------------------------------
-*/
-void Generator::get_values(Node* node) {
-    // locate <R> nonterminal
-    if (node->label == "<R>" && node->tokens.size() > 0) {
-
-        // check if the token contains "integer" or "identifier"
-        size_t pos_a = node->tokens[0].find("integer");
-        size_t pos_b = node->tokens[0].find("identifier");
-            
-        // extract integer value
-        if (pos_a != std::string::npos) {
-            size_t p = node->tokens[0].find(":", pos_a);
-
-            if (p != std::string::npos) {
-                std::string s = node->tokens[0].substr(p + 1);
-                int integer = std::stoi(s);
-                
-                // store value
-                _values.push_back(std::to_string(integer));
-            }
-        } 
-        else {
-            // extract variable value from token
-            size_t p = node->tokens[0].find("\"", pos_b);
-            
-            if (p != std::string::npos) {
-                size_t e = node->tokens[0].find("\"", p + 1);
-
-                if (e != std::string::npos) {
-                    std::string identifier = node->tokens[0].substr(p + 1, e - p - 1);
-                    
-                    // store value
-                    _values.push_back(identifier);
-                }
-            }
-        }
-    }
-        
-    // traverse the children
-    for (auto child : node->children)
-        get_values(child);
 }
 
 

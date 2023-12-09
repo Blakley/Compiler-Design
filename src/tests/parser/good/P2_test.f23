@@ -1,0 +1,4 @@
+xopen
+    xout << 26 ;
+    xout << 4 - 2 * ~ ~ 9 * 14 ;
+xclose

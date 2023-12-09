@@ -1,4 +1,5 @@
 xopen
+    xout << 26 ;
     xlet x1 1 ; 
     xout << 1 * 2 + ~ ~ 1 * 4 / ( 22 + 41 ) ;
     xcond [ 1 % 2 ]
