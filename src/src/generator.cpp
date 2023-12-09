@@ -99,16 +99,6 @@ void Generator::generate(Node* node) {
         generate_xout(node);     
 
 
-    /**
-     * ===============================
-     *  handle <exp> nonterminal:
-     *  <exp> -> <M> / <exp> | <M> * <exp> | <M> 
-     * ===============================
-    */
-    if (node->label == "<exp>")
-        generate_exp(node);
-
-
     // traverse the children
     for (auto child : node->children)
         generate(child);
@@ -191,21 +181,53 @@ void Generator::generate_xout(Node* node) {
 /**
  * ------------------------------------------
  *     Generates assembly code for the 
- *       output statement (<exp>)
+ *          current <exp> node
  * 
  * @param node: current node
  * ------------------------------------------
 */
-void Generator::generate_exp(Node* node) {
-    // todo:
+int Generator::generate_exp(Node* node) {
+    int result = 0;
+
     /*
-        1)
+        todo:
+
+        re-decorate tree where each <exp> has its own operators and values
+        <RO> nodes have contain their operators
+
+    
+        call get_values() which will get all the variable and or integer values
+        contained in the expression and store them in a vector "_values"
+
+        next, we'll
+
+        (each expression needs a list of associated operators)
+        (<exp> to operators mapping)
+
+
+        iterate values and operators of current expression and calculate
+        from left to right the resulting value
+        make sure to remove the operators from the list that have already been consumed 
+
+        generate a temporary value for each <exp>
+
+        each <exp> has a unique output value
+
+        generate the required assembly for the <exp> output
+        and store it in a temporary variable
+
+        if a node like <out>, <if>, etc .. called this function,
+        they will use the appropriate created temporary value generated 
+        
+        1) 
         2)
         3)
         4)
         5)
-    
+
     */
+   
+   return result;
 }
 
 

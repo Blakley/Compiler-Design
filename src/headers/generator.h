@@ -40,7 +40,7 @@ class Generator {
         void generate_xin(Node* n);         // handles reading in a value
         void generate_xout(Node* n);        // handles outputting a value
         void generate_varList(Node* n);     // handles variable assignment code
-        void generate_exp(Node* n);         // handle getting the output of an expression
+        int  generate_exp(Node* n);         // handle getting the output of an expression
         void generate_vars(Node* n);        // handles creating the local variables
         void generate_xclose();             // handles the closing assembly code
 

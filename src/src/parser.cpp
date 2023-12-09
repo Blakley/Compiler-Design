@@ -76,23 +76,6 @@ void Parser::parse_program() {
     retrieve(); 
     if (_token.id != eof_tk)
         error("EOF", _token.instance);
-
-    // store expression operators
-    for (auto o : _operators)
-        tree.root_node()->tokens.push_back(o);
-    
-    // store relational operators
-    if (_relationals.size() >= 1) {
-        // append operator list seperator
-        tree.root_node()->tokens.push_back("?");
-
-        for (auto r : _relationals) 
-            tree.root_node()->tokens.push_back(r);
-    } 
-
-    // clear lists
-    _operators.clear();
-    _relationals.clear();
 }
 
 
@@ -412,8 +395,8 @@ void Parser::parse_exp() {
     // check for division, multiplication, addition, subtraction, and ~
     while (_token.instance == "/" || _token.instance == "*"
         || _token.instance == "+" || _token.instance == "-" || _token.instance == "~") {
-            
-        _operators.push_back(_token.instance); // store operator
+
+        _operations.push_back(_token.instance); // store operator
 
         retrieve();  // retrieve next token
 
@@ -464,7 +447,7 @@ void Parser::parse_M() {
 
     // check for addition
     while (_token.instance == "+") {        
-        _operators.push_back(_token.instance); // store operator
+        _operations.push_back(_token.instance); // store operator
         
         retrieve(); // retrieve next token
 
@@ -508,7 +491,7 @@ void Parser::parse_N() {
 
     // verify first token
     if (_token.instance == "~") {
-        _operators.push_back(_token.instance); // store operator
+        _operations.push_back(_token.instance); // store operator
 
         retrieve(); // retrieve next token
 
@@ -526,7 +509,7 @@ void Parser::parse_N() {
         // check for subtraction
         bool unary = false;
         while (_token.instance == "-") {
-            _operators.push_back(_token.instance); // store operator
+            _operations.push_back(_token.instance); // store operator
 
             unary = true;
             retrieve(); // retrieve next token
@@ -574,6 +557,8 @@ void Parser::parse_R() {
 
     // verify first token
     if (_token.instance == "(") {
+        _operations.push_back(_token.instance); // store value
+
         retrieve();  // retrieve next token
 
         // parse the enclosed <exp>
@@ -582,14 +567,20 @@ void Parser::parse_R() {
         tree.new_child(r_node, tree.reference);
 
         // verify and consume the closing parenthesis
-        if (_token.instance == ")")
+        if (_token.instance == ")") {
+            _operations.push_back(_token.instance); // store value
+
             retrieve(); // retrieve next token
+        }
         else
             error(")", _token.instance);
     } 
     else if (_token.id == identifier_tk || _token.id == integer_tk) {
         // add "identifier" or "integer" token to <R> node
         // retrieve next token
+
+        _operations.push_back(_token.instance); // store value
+
         tree.new_token(r_node, &_token);
         retrieve(); 
     }
@@ -752,10 +743,17 @@ void Parser::parse_out() {
         error("<<", _token.instance);
 
     // call function to parse <exp>
-    // add child <exp> to parent <out>
     parse_exp();
+
+    // update operations for <exp>
+    for (auto o : _operations)
+        tree.reference->tokens.push_back(o);
+    _operations.clear();
+
+    // add child <exp> to parent <out>
     tree.new_child(out_node, tree.reference);
-    
+
+
     // verify next expected token
     if (_token.instance != ";") 
         error(";", _token.instance);
@@ -805,18 +803,35 @@ void Parser::parse_if() {
         error("[", _token.instance);
 
     // call function to parse <exp>
-    // add child <exp> to parent <if>
     parse_exp();
+
+    // update operations for <exp>
+    for (auto o : _operations)
+        tree.reference->tokens.push_back(o);
+    _operations.clear();
+
+    // add child <exp> to parent <if>
     tree.new_child(if_node, tree.reference);
 
     // call function to parse <RO>
-    // add child <RO> to parent <if>
     parse_RO();
+
+    // update relation operator for <if>
+    tree.reference->tokens.push_back(_relationals[0]);
+    _relationals.clear();
+
+    // add child <RO> to parent <if>
     tree.new_child(if_node, tree.reference);
 
     // call function to parse <exp>
-    // add child <exp> to parent <if>
     parse_exp();
+
+    // update operations for <exp>
+    for (auto o : _operations)
+        tree.reference->tokens.push_back(o);
+    _operations.clear();
+
+    // add child <exp> to parent <if>
     tree.new_child(if_node, tree.reference);
 
     // verify next expected token
@@ -826,8 +841,9 @@ void Parser::parse_if() {
         error("]", _token.instance);
 
     // call function to parse <stat>
-    // add child <stat> to parent <if>
     parse_stat();
+    
+    // add child <stat> to parent <if>
     tree.new_child(if_node, tree.reference);
 
     // store reference to <if> to be added as a child
@@ -875,18 +891,35 @@ void Parser::parse_loop() {
         error("[", _token.instance);
 
     // call function to parse <exp>
-    // add child <exp> to parent <loop>
     parse_exp();
+
+    // update operations for <exp>
+    for (auto o : _operations)
+        tree.reference->tokens.push_back(o);
+    _operations.clear();
+
+    // add child <exp> to parent <loop>
     tree.new_child(loop_node, tree.reference);
 
     // call function to parse <RO>
     // add child <RO> to parent <loop>
     parse_RO();
+
+    // update relation operator for <loop>
+    tree.reference->tokens.push_back(_relationals[0]);
+    _relationals.clear();
+
     tree.new_child(loop_node, tree.reference);
 
     // call function to parse <exp>
-    // add child <exp> to parent <loop>
     parse_exp();
+
+    // update operations for <exp>
+    for (auto o : _operations)
+        tree.reference->tokens.push_back(o);
+    _operations.clear();
+
+    // add child <exp> to parent <loop>
     tree.new_child(loop_node, tree.reference);
 
     // verify next expected token
@@ -896,8 +929,9 @@ void Parser::parse_loop() {
         error("]", _token.instance);
 
     // call function to parse <stat>
-    // add child <stat> to parent <loop>
     parse_stat();
+
+    // add child <stat> to parent <loop>
     tree.new_child(loop_node, tree.reference);
 
     // store reference to <loop> to be added as a child
@@ -948,8 +982,14 @@ void Parser::parse_assign() {
         error("identifier", _token.instance);
 
     // call function to parse <exp>
-    // add child <exp> to parent <assign>
     parse_exp();
+
+    // update operations for <exp>
+    for (auto o : _operations)
+        tree.reference->tokens.push_back(o);
+    _operations.clear();
+
+    // add child <exp> to parent <assign>
     tree.new_child(assign_node, tree.reference);
 
     // verify next expected token

@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/03/2023
+    Date: 12/09/2023
     Description: 
         Header file for recursive descent top-down parser
 */
@@ -19,9 +19,8 @@ class Parser {
         Scanner& scanner; // Scanner reference
         Tree& tree;       // Tree reference
 
-        // program operators & relational operators
-        std::vector<std::string> _operators;   // store in <program>
-        std::vector<std::string> _relationals; // store in <program> after operators
+        std::vector<std::string> _relationals; // relational operators of statement
+        std::vector<std::string> _operations;  // values & operators of expression
 
     public:
         ~Parser();                          // Destructor
