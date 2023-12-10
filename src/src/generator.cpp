@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/09/2023
+    Date: 12/10/2023
     Description: 
         Generator function declarations
 */
@@ -184,10 +184,6 @@ void Generator::generate_assign(Node* node) {
  * ------------------------------------------
 */
 std::string Generator::generate_exp(Node* node) {
-    // TODO:
-    // 1) handle evaluating expressions within parenthesis
-    // 2) handle nested expresions using parenthesis
-
     // case 1: single value
     if (node->tokens.size() == 1)
         return node->tokens[0];
@@ -210,11 +206,14 @@ std::string Generator::generate_exp(Node* node) {
     // stores the unconsumed operator
     std::string unconsumed_operator = "";
 
-    // stores the previous unconsumed operator
-    std::string previous_unconsumed_operator = "";
+    // stores the inner expression's unconsumed operator
+    std::string inner_unconsumed = "";
 
     // stores the previous value
     std::string previous_value = "";
+
+    // stores the previous inner value
+    std::string previous_inner = "";
 
     // ========================
     //   evaluate expression
@@ -235,52 +234,100 @@ std::string Generator::generate_exp(Node* node) {
             //   handle operators
             //=========================
             
-            // value is an operator
-            unconsumed_operator =  
-                (value == "+") ? "ADD" :
-                (value == "-") ? "SUB" :
-                (value == "*") ? "MULT" : "DIV";
+            // handle inner unconsumed operators
+            if (!_stack.empty()) {
+                // value is inner operator
+                inner_unconsumed =  
+                    (value == "+") ? "ADD" :
+                    (value == "-") ? "SUB" :
+                    (value == "*") ? "MULT" : "DIV";
+            }
+            else {
+                // value is normal operator
+                unconsumed_operator =  
+                    (value == "+") ? "ADD" :
+                    (value == "-") ? "SUB" :
+                    (value == "*") ? "MULT" : "DIV";
+            }
         }        
         else if (value == "(") {
-            // store the current expression in the temporary variable
+            // store the current expression in the outer-most temporary variable
             assembly.push_back("STORE " + temporary);
 
             // create temporary variable for inner expression
             inner_temporary = get_temp();
-
-            // now, when iterating tokens, if inner expression isn't empty, we should creating the assembly for the inner temporary value
-            // todo:
+            _stack.push(inner_temporary);
+            
+            std::cout << "Created temporary variable: " << inner_temporary << ", for inner expression\n"; 
         }
         else if (value == ")") {
-            // store inner expression in temporary variable
+            std::cout << "Inner expression evaluated\n"; 
+
+            // store the result of the inner expression in its temporary variable
             assembly.push_back("STORE " + inner_temporary);
 
-            // load original temporary variable into accumulator
+            // load original temporary variable back into accumulator
             assembly.push_back("LOAD " + temporary);
 
-            // stop evaluating inner expresion, perform operation with previous_unconsumed_operator before inner expression and result of inner expression
-            // assembly.push_back(previous_unconsumed_operator + " " + value);
-            // reset inner expression string
+            std::cout << "Performing operation with original expression and inner expression ";
+            std::cout << "using outter operation: " << unconsumed_operator << ", and inner expression value: " << inner_temporary << "\n"; 
+
+            /*
+                perform operation with original expression (now in accumulator),
+                inner expression, and original unconsumed_operator
+            */            
+            assembly.push_back(unconsumed_operator + " " + inner_temporary);
+
+            // reset inner expression and operator
+            _stack.pop();
+            inner_temporary = "";
+            inner_unconsumed = "";
         }
         else {
             // ===============================
             //   handle identifers & integers
             //================================
 
-            if (previous_value.empty()) {
-                // load first value into the accumulator
-                assembly.push_back("LOAD " + value); 
+            // handle evaluating inner expressions 
+            if (!_stack.empty()) {
+                std::cout << "evaluating inner expression\n"; 
+
+                if (previous_inner.empty()) {
+                    std::cout << "loading first value of inner expression into the accumulator\n";
+                    
+                    // load first inner expression value into the accumulator
+                    assembly.push_back("LOAD " + value);
+                }
+                else {
+                    // apply the inner_unconsumed operator to the current value
+                    assembly.push_back(inner_unconsumed + " " + value);
+
+                    // reset inner_unconsumed operator
+                    inner_unconsumed = "";
+                }
+
+                // update previous_inner
+                previous_inner = value;
             }
             else {
-                // apply the unconsumed operator to the current value
-                assembly.push_back(unconsumed_operator + " " + value);
+                // normal expression
+                std::cout << "evaluating normal expression\n"; 
 
-                // reset the unconsumed operator
-                unconsumed_operator = "";
+                if (previous_value.empty()) {
+                    // load first value into the accumulator
+                    assembly.push_back("LOAD " + value); 
+                }
+                else {
+                    // apply the unconsumed operator to the current value
+                    assembly.push_back(unconsumed_operator + " " + value);
+
+                    // reset the unconsumed operator
+                    unconsumed_operator = "";
+                }
+
+                // update previous_value
+                previous_value = value;                
             }
-
-            // update previous_value
-            previous_value = value;
         }
     }
 
