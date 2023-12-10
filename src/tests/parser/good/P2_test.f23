@@ -1,4 +1,7 @@
+xdata x1 : 1 ;
 xopen
+    xin >> x1 ;
+    xlet x1 x1 - 1 ;
     xout << 26 ;
-    xout << 4 - 2 * ~ ~ 9 * 14 ;
+    xout << 4 - - - 5 - - 2 * ~ ~ 9 * 14 - - - - 3;
 xclose

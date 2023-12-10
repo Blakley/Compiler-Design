@@ -74,6 +74,15 @@ void Generator::generate(Node* node) {
     if (node->label == "<out>")
         generate_xout(node);     
 
+    /**
+     * ===============================
+     *  handle <assign> nonterminal:
+     *  <assign> -> xlet identifier <exp> ;
+     * ===============================
+    */
+    if (node->label == "<assign>")
+        generate_assign(node);     
+
 
     // traverse the children
     for (auto child : node->children)
@@ -136,16 +145,31 @@ void Generator::generate_xin(Node* node) {
  * ------------------------------------------
 */
 void Generator::generate_xout(Node* node) {
-
-    // ================================
-    //        create assembly
-    // ================================
-
     // get evaluated expression
     std::string output = generate_exp(node->children[0]);
 
     // generate assembly
     assembly.push_back("WRITE " + output);
+}
+
+
+/**
+ * ------------------------------------------
+ *     Generates assembly code for the 
+ *       output statement (<assign>)
+ * 
+ * @param node: current node
+ * ------------------------------------------
+*/
+void Generator::generate_assign(Node* node) {
+    // get result identifier
+    std::string identifier = identify(node, 0);
+
+    // get evaluated expression
+    std::string output = generate_exp(node->children[0]);
+
+    // generate assembly, copy the value of output into identifier
+    assembly.push_back("COPY " + identifier + " " + output);
 }
 
 
@@ -181,17 +205,12 @@ std::string Generator::generate_exp(Node* node) {
     // stores the previous value
     std::string previous_value = "";
 
-    // stores the number of consecutive "-" signs
-    // todo:
-    // int consecutive = 0;
-    
-    // expression index & expression size
-    // int index = 0;
-    // int size = node->tokens.size();
-
     // ========================
     //   evaluate expression
     //=========================
+
+    // potentially optimize redundancy
+    optimize(node->tokens);
 
     // evaluate expression & generate required assembly
     for (auto value : node->tokens) {
@@ -212,11 +231,11 @@ std::string Generator::generate_exp(Node* node) {
                 (value == "*") ? "MULT" : "DIV";
         }        
         else if (value == "(") {
-            // todo : (later)
+            // todo :
             // create temporary variable for inner expression
         }
         else if (value == ")") {
-            // todo: (later)
+            // todo:
             // stop evaluating inner expresion
         }
         else {
@@ -229,8 +248,8 @@ std::string Generator::generate_exp(Node* node) {
                 assembly.push_back("LOAD " + value); 
             }
             else {
-                // apply the unconsumed operator to the previous value
-                assembly.push_back(unconsumed_operator + " " + previous_value);
+                // apply the unconsumed operator to the current value
+                assembly.push_back(unconsumed_operator + " " + value);
 
                 // reset the unconsumed operator
                 unconsumed_operator = "";
@@ -375,6 +394,61 @@ std::string Generator::get_temp() {
     locals.insert(output);
 
     return output;
+}
+
+
+/**
+ * ------------------------------------------
+ *    Removes redundancy in an expression   
+ * ------------------------------------------
+ */
+void Generator::optimize(std::vector<std::string>& tokens) {
+    // vector to store the optimized expression
+    std::vector<std::string> optimized_exp;
+    
+    // flag to track consecutive dashes
+    bool is_consecutive = false;
+
+    // counter for consecutive dashes
+    int consecutive = 0;
+
+    // iterate through each token in the input expression
+    for (const std::string& token : tokens) {
+        // check if the current token is a dash
+        if (token == "-") {
+            // Increment the consecutive dash counter
+            consecutive++;
+            is_consecutive = true;
+        } 
+        else {
+            // check if the previous tokens formed a consecutive dash sequence
+            if (is_consecutive) {
+                // if the number of consecutive dashes is even, replace with '+', else with '-'
+                if (consecutive % 2 == 0)
+                    optimized_exp.push_back("+");
+                else
+                    optimized_exp.push_back("-");
+                
+                // reset consecutive dash counter and flag
+                consecutive = 0;
+                is_consecutive = false;
+            }
+
+            // add the current token to the optimized expression
+            optimized_exp.push_back(token);
+        }
+    }
+
+    // handle the case where consecutive dashes end at the end of the vector
+    if (is_consecutive) {
+        if (consecutive % 2 == 0)
+            optimized_exp.push_back("+");
+        else 
+            optimized_exp.push_back("-");
+    }
+
+    // update the input vector with the optimized expression
+    tokens = optimized_exp;
 }
 
 
