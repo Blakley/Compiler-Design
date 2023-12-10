@@ -5,8 +5,9 @@
         Generator function declarations
 */
 
-#include "../headers/generator.h"
-#include <algorithm>
+# include "../headers/generator.h"
+# include <algorithm>
+# include <stack>
 
 
 /**
@@ -183,6 +184,10 @@ void Generator::generate_assign(Node* node) {
  * ------------------------------------------
 */
 std::string Generator::generate_exp(Node* node) {
+    // TODO:
+    // 1) handle evaluating expressions within parenthesis
+    // 2) handle nested expresions using parenthesis
+
     // case 1: single value
     if (node->tokens.size() == 1)
         return node->tokens[0];
@@ -199,8 +204,14 @@ std::string Generator::generate_exp(Node* node) {
     // stores a temporary variable for the inner expressions
     std::string inner_temporary = "";
 
+    // stack to handle nested expressions
+    std::stack<std::string> _stack;
+
     // stores the unconsumed operator
     std::string unconsumed_operator = "";
+
+    // stores the previous unconsumed operator
+    std::string previous_unconsumed_operator = "";
 
     // stores the previous value
     std::string previous_value = "";
@@ -231,12 +242,25 @@ std::string Generator::generate_exp(Node* node) {
                 (value == "*") ? "MULT" : "DIV";
         }        
         else if (value == "(") {
-            // todo :
+            // store the current expression in the temporary variable
+            assembly.push_back("STORE " + temporary);
+
             // create temporary variable for inner expression
+            inner_temporary = get_temp();
+
+            // now, when iterating tokens, if inner expression isn't empty, we should creating the assembly for the inner temporary value
+            // todo:
         }
         else if (value == ")") {
-            // todo:
-            // stop evaluating inner expresion
+            // store inner expression in temporary variable
+            assembly.push_back("STORE " + inner_temporary);
+
+            // load original temporary variable into accumulator
+            assembly.push_back("LOAD " + temporary);
+
+            // stop evaluating inner expresion, perform operation with previous_unconsumed_operator before inner expression and result of inner expression
+            // assembly.push_back(previous_unconsumed_operator + " " + value);
+            // reset inner expression string
         }
         else {
             // ===============================

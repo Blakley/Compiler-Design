@@ -4,4 +4,5 @@ xopen
     xlet x1 x1 - 1 ;
     xout << 26 ;
     xout << 4 - - - 5 - - 2 * ~ ~ 9 * 14 - - - - 3;
+    xout << 5 - (12 - 12 - (4 + 4)) ;
 xclose

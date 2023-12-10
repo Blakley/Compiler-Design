@@ -5,13 +5,13 @@
         Header file for code generator class
 */
 
-#ifndef GENERATOR_H
-#define GENERATOR_H
+# ifndef GENERATOR_H
+# define GENERATOR_H
 
-#include "tree.h"
-#include <fstream>
-#include <vector>
-#include <set>
+# include "tree.h"
+# include <fstream>
+# include <vector>
+# include <set>
 
 class Generator {
     private:
