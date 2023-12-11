@@ -7,7 +7,7 @@
 
 # include "../headers/generator.h"
 # include <algorithm>
-
+# include <map>
 
 /**
  * ------------------------------------------
@@ -82,6 +82,24 @@ void Generator::generate(Node* node) {
     */
     if (node->label == "<assign>")
         generate_assign(node);     
+
+    /**
+     * ===============================
+     *  handle <if> nonterminal:
+     *  <if> -> xcond [ <exp> <RO> <exp> ] <stat> 
+     * ===============================
+    */
+    if (node->label == "<if>")
+        generate_if(node);
+
+    /**
+     * ===============================
+     *  handle <loop> nonterminal:
+     *  <loop> -> xloop [ <exp> <RO> <exp> ] <stat> 
+     * ===============================
+    */
+    if (node->label == "<loop>")
+        generate_loop(node);
 
 
     // traverse the children
@@ -356,6 +374,77 @@ std::string Generator::generate_exp(Node* node) {
 
 /**
  * ------------------------------------------
+ *     Generates assembly code for the 
+ *          current <if> node
+ * 
+ * @param node : current node
+ * ------------------------------------------
+*/
+void Generator::generate_if(Node* node) {
+    // <if> -> xcond <exp> <RO> <exp> <stat>
+
+    // get first evaluated expression
+    std::string a = generate_exp(node->children[0]);
+
+    // load first part of expression into the accumulator
+    assembly.push_back("LOAD " + a);
+
+    // get relational operator
+    std::string r = node->children[1]->tokens[0];
+
+    // get second evaluated expression
+    std::string b = generate_exp(node->children[2]);
+
+    std::cout << "first expression: " << a << ", relational operator: " << r << ", second expression: " << b << "\n";
+
+    // generate labels for branching
+    std::string label_a = get_label("");
+    std::string label_b = get_label("end");
+
+    // 
+
+
+    /*
+
+        once we encounter if, we need to generate label for if the statement is both true and false
+        before we evalute if the condition is true, we need to generate the code for both and only 
+        then jump to the appropriate branch
+
+        if condition is true:
+            
+            navigate to the <stat> child of the <if> node
+            perform/(generate assembly) the necessary operations on the <stat> children,
+            create a list of these nodes so we can skip traversing them in the generate function
+
+        if condition is false:
+
+            jump to label_false which should continue the execution of the program as normal
+
+
+        alternative method for handling <if> :
+            generate all code as normal, then iterate tree again, this time
+            finding all conditional nodes, <if> and inserting conditional assembly & labels
+            whereever necessary
+    */
+
+}
+
+
+/**
+ * ------------------------------------------
+ *     Generates assembly code for the 
+ *          current <loop> node
+ * 
+ * @param node : current node
+ * ------------------------------------------
+*/
+void Generator::generate_loop(Node* node) {
+    // todo:
+}
+
+
+/**
+ * ------------------------------------------
  *   Generates assembly code for closing 
  *   (<xclose>) section of the program
  * ------------------------------------------
@@ -473,7 +562,7 @@ std::string Generator::identify(Node* node, int option) {
  * ------------------------------------------
 */
 std::string Generator::get_temp() {
-    // generate name based on counter value
+    // generate name based on temp counter
     std::string output = "";
     output = "temp" + std::to_string(temp_counter);
     temp_counter ++;
@@ -481,6 +570,30 @@ std::string Generator::get_temp() {
     // add temporary value to locals
     locals.insert(output);
 
+    return output;
+}
+
+
+/**
+ * ------------------------------------------
+ *       Returns a unique label name  
+ * 
+ *  @param  : label type identifier 
+ *  @return : unique name
+ * ------------------------------------------
+*/
+std::string Generator::get_label(std::string s) {
+    // generate name based on label counter
+    std::string output = "";
+
+    if (s == "")
+        // normal label
+        output = "label" + std::to_string(label_counter);
+    else
+        // ending label
+        output = "label_end" + std::to_string(label_counter);
+
+    label_counter ++;
     return output;
 }
 
