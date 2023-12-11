@@ -1,3 +1,6 @@
-xopen
-    xout << 30 - (15 - (15 + (6 + (25 / 5)) + 15)) + 100 ;
+xdata x1 : 1 ;
+xopen 
+  xin >> x1 ;
+  xcond [ x1 % 5 ]
+    xout << 1 ;
 xclose

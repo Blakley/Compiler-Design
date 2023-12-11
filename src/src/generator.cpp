@@ -446,20 +446,16 @@ void Generator::generate_if(Node* node) {
     
     // perform evaluation
     assembly.push_back("SUB " + b);
-    
-    // create label navigation assembly
-    assembly.push_back(operations[r] + " " + label_start); // condition
-    assembly.push_back("BR " + label_end);                 // jump to label if false
-    assembly.push_back(label_start + ": NOOP");            // jump to label if true
 
-    /*
-        // handle not equal to condition last
-        if (operations[r] == "%") {
-            // store additional operation, the true evaluation matches the else case which should go to end label
-            // in the assembly for the label_start: just add one NOOP
-            assembly.push_back("BR " + label_end);
-        }
-    */
+    // create label navigation assembly
+    if (r == "%")
+        assembly.push_back(operations[r] + " " + label_end);   // not equal condition
+    else {
+        // create label navigation assembly
+        assembly.push_back(operations[r] + " " + label_start); // condition
+        assembly.push_back("BR " + label_end);                 // jump to label if false
+        assembly.push_back(label_start + ": NOOP");            // jump to label if true
+    }
 
     // store reference to end label and indentation
     _labels.insert({label_end, node->indentation});    
