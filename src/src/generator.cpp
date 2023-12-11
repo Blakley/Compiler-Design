@@ -7,7 +7,6 @@
 
 # include "../headers/generator.h"
 # include <algorithm>
-# include <stack>
 
 
 /**
@@ -197,126 +196,144 @@ std::string Generator::generate_exp(Node* node) {
     // create new temporary variable
     std::string temporary = get_temp();
 
-    // stores a temporary variable for the inner expressions
-    std::string inner_temporary = "";
-
-    // stack to handle nested expressions
-    std::stack<std::string> _stack;
-
     // stores the unconsumed operator
     std::string unconsumed_operator = "";
-
-    // stores the inner expression's unconsumed operator
-    std::string inner_unconsumed = "";
 
     // stores the previous value
     std::string previous_value = "";
 
-    // stores the previous inner value
-    std::string previous_inner = "";
+    /*
+        create structure to hold stack elements
+        useful for nested expressions ( <exp> )
+    */
+    struct stack_data {
+        // stores the inner expression's unconsumed operator
+        std::string unconsumed_operator = "";
+
+        // stores the previous inner value
+        std::string previous_value = "";
+
+        // stores a temporary variable for the inner expressions
+        std::string temporary = ""; 
+    };
+
+    // stack to handle nested expressions    
+    std::vector<stack_data> _stack;
 
     // ========================
     //   evaluate expression
     //=========================
 
-    // potentially optimize redundancy
+    // optimize expression
     optimize(node->tokens);
 
     // evaluate expression & generate required assembly
     for (auto value : node->tokens) {
+
         // determine expression value
         if (value == "~") {
             // negate accumulator
             assembly.push_back("MULT -1"); 
         }
         else if (value == "+" || value == "-" || value == "*" || value == "/") {
-            // ========================
-            //   handle operators
-            //=========================
             
-            // handle inner unconsumed operators
             if (!_stack.empty()) {
-                // value is inner operator
-                inner_unconsumed =  
+                // operator is an inner expression operator
+                _stack[_stack.size() - 1].unconsumed_operator = 
                     (value == "+") ? "ADD" :
                     (value == "-") ? "SUB" :
                     (value == "*") ? "MULT" : "DIV";
             }
             else {
-                // value is normal operator
+                // operator is for outter expression
                 unconsumed_operator =  
                     (value == "+") ? "ADD" :
                     (value == "-") ? "SUB" :
                     (value == "*") ? "MULT" : "DIV";
             }
-        }        
+        }
         else if (value == "(") {
-            // store the current expression in the outer-most temporary variable
-            assembly.push_back("STORE " + temporary);
-
-            // create temporary variable for inner expression
-            inner_temporary = get_temp();
-            _stack.push(inner_temporary);
+            // start of new inner expression
+            std::cout << "About to create a new inner expression\n"; 
             
-            std::cout << "Created temporary variable: " << inner_temporary << ", for inner expression\n"; 
+            // store the current expression
+            if (!_stack.empty())  
+                // store in outter temporary variable
+                assembly.push_back("STORE " + _stack[_stack.size() - 1].temporary);
+            else
+                // store expression in outter-most temporary variable
+                assembly.push_back("STORE " + temporary);
+                
+            // create new temporary variable for inner expression
+            struct stack_data data;
+            data.temporary = get_temp();
+            _stack.push_back(data);
+
+            std::cout << "Created temporary variable: " << data.temporary << ", for an inner expression\n";
         }
         else if (value == ")") {
-            std::cout << "Inner expression evaluated\n"; 
+            // end of an inner expression            
+            std::cout << "An inner expression was evaluated\n"; 
 
-            // store the result of the inner expression in its temporary variable
-            assembly.push_back("STORE " + inner_temporary);
+            // store result of inner expression it its corresponding temporary variable
+            assembly.push_back("STORE " + _stack[_stack.size() - 1].temporary);
 
             // load original temporary variable back into accumulator
-            assembly.push_back("LOAD " + temporary);
+            if (_stack.size() > 1) {
+                // load previous outter expression's temporary variable into accumulator
+                assembly.push_back("LOAD " + _stack[_stack.size() - 2].temporary);
 
-            std::cout << "Performing operation with original expression and inner expression ";
-            std::cout << "using outter operation: " << unconsumed_operator << ", and inner expression value: " << inner_temporary << "\n"; 
+                // perform operation with previous expression and evaluated expression
+                assembly.push_back(_stack[_stack.size() - 2].unconsumed_operator + " " + _stack[_stack.size() - 1].temporary);
 
-            /*
-                perform operation with original expression (now in accumulator),
-                inner expression, and original unconsumed_operator
-            */            
-            assembly.push_back(unconsumed_operator + " " + inner_temporary);
+                std::cout << "Performing operation with previous expression and an inner expression ";
+                std::cout << "using outter operation: " << _stack[_stack.size() - 2].unconsumed_operator << ", and inner expression value: " << _stack[_stack.size() - 1].temporary << "\n"; 
+            }
+            else {
+                // load original temporary variable back into accumulator
+                assembly.push_back("LOAD " + temporary);
 
-            // reset inner expression and operator
-            _stack.pop();
-            inner_temporary = "";
-            inner_unconsumed = "";
+                // perform operation with previous expression (in accumulator) and evaluated expression
+                assembly.push_back(unconsumed_operator + " " + _stack[_stack.size() - 1].temporary);
+
+                std::cout << "Performing operation with previous expression and an inner expression ";
+                std::cout << "using outter operation: " << unconsumed_operator << ", and inner expression value: " << _stack[_stack.size() - 1].temporary << "\n"; 
+            }
+            
+            // remove expression
+            _stack.pop_back();
         }
         else {
-            // ===============================
-            //   handle identifers & integers
-            //================================
-
-            // handle evaluating inner expressions 
+            // handle identifier and integer values
             if (!_stack.empty()) {
-                std::cout << "evaluating inner expression\n"; 
+                // evalute inner expression
+                std::cout << "evaluating an inner expression\n"; 
 
-                if (previous_inner.empty()) {
-                    std::cout << "loading first value of inner expression into the accumulator\n";
-                    
+                // load first value into accumulator
+                if (_stack[_stack.size() - 1].previous_value.empty()) {
+                    std::cout << "loading first value of an inner expression into the accumulator\n";
+
                     // load first inner expression value into the accumulator
                     assembly.push_back("LOAD " + value);
                 }
                 else {
-                    // apply the inner_unconsumed operator to the current value
-                    assembly.push_back(inner_unconsumed + " " + value);
+                    // apply the inner expression's unconsumed operator to the current value
+                    assembly.push_back(_stack[_stack.size() - 1].unconsumed_operator + " " + value);
 
                     // reset inner_unconsumed operator
-                    inner_unconsumed = "";
+                    _stack[_stack.size() - 1].unconsumed_operator = "";
                 }
 
                 // update previous_inner
-                previous_inner = value;
+                _stack[_stack.size() - 1].previous_value = value;
             }
             else {
-                // normal expression
-                std::cout << "evaluating normal expression\n"; 
+                // evaluate outter-most expression
+                std::cout << "evaluating outter-most expression\n"; 
 
-                if (previous_value.empty()) {
-                    // load first value into the accumulator
+                // load first value into the accumulator
+                if (previous_value.empty())
                     assembly.push_back("LOAD " + value); 
-                }
                 else {
                     // apply the unconsumed operator to the current value
                     assembly.push_back(unconsumed_operator + " " + value);
@@ -326,12 +343,12 @@ std::string Generator::generate_exp(Node* node) {
                 }
 
                 // update previous_value
-                previous_value = value;                
+                previous_value = value;  
             }
         }
     }
 
-    // store evaluated expression, from accumulator, in temporary variable 
+    // store complete evaluated expression, from accumulator, in temporary variable 
     assembly.push_back("STORE " + temporary);
     return temporary;
 }
