@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/10/2023
+    Date: 12/11/2023
     Description: 
         Generator function declarations
 */
@@ -49,24 +49,49 @@ void Generator::generate(Node* node) {
     /**
      * -------------------------------
      *   handle generating end label
-     *    for conditional branch
+     *       for if branching
      * -------------------------------
     */
-    if (!_labels.empty()) {
+    if (!if_labels.empty()) {
         // check if there are end labels to process
-        auto it = _labels.begin();
-        while (it != _labels.end()) {
+        auto it = if_labels.begin();
+        while (it != if_labels.end()) {
             if (node->indentation <= it->second) {
                 // append label to assembly
                 assembly.push_back(it->first + ": NOOP");
 
                 // remove end label from map
-                it = _labels.erase(it);
+                it = if_labels.erase(it);
             }
             else    
                 ++ it;
         }
     }    
+
+    /**
+     * -------------------------------
+     *   handle generating end label
+     *      for loop branching
+     * -------------------------------
+    */
+    if (!loop_labels.empty()) {
+        // check if there are end labels to process
+        auto it = loop_labels.begin();
+        while (it != loop_labels.end()) {
+            if (node->indentation <= it->second) {
+                // append iteration continue assembly
+                assembly.push_back("BR " + it->first.first);
+
+                // add label to assembly
+                assembly.push_back(it->first.second + ": NOOP");
+
+                // remove from the map
+                it = loop_labels.erase(it);
+            } 
+            else
+                ++ it;
+        }
+    }
 
     /**
      * ===============================
@@ -293,7 +318,6 @@ std::string Generator::generate_exp(Node* node) {
         }
         else if (value == "(") {
             // start of new inner expression
-            std::cout << "About to create a new inner expression\n"; 
             
             // store the current expression
             if (!_stack.empty())  
@@ -307,12 +331,9 @@ std::string Generator::generate_exp(Node* node) {
             struct stack_data data;
             data.temporary = get_temp();
             _stack.push_back(data);
-
-            std::cout << "Created temporary variable: " << data.temporary << ", for an inner expression\n";
         }
         else if (value == ")") {
             // end of an inner expression            
-            std::cout << "An inner expression was evaluated\n"; 
 
             // store result of inner expression it its corresponding temporary variable
             assembly.push_back("STORE " + _stack[_stack.size() - 1].temporary);
@@ -324,19 +345,13 @@ std::string Generator::generate_exp(Node* node) {
 
                 // perform operation with previous expression and evaluated expression
                 assembly.push_back(_stack[_stack.size() - 2].unconsumed_operator + " " + _stack[_stack.size() - 1].temporary);
-
-                std::cout << "Performing operation with previous expression and an inner expression ";
-                std::cout << "using outter operation: " << _stack[_stack.size() - 2].unconsumed_operator << ", and inner expression value: " << _stack[_stack.size() - 1].temporary << "\n"; 
             }
             else {
                 // load original temporary variable back into accumulator
                 assembly.push_back("LOAD " + temporary);
 
                 // perform operation with previous expression (in accumulator) and evaluated expression
-                assembly.push_back(unconsumed_operator + " " + _stack[_stack.size() - 1].temporary);
-
-                std::cout << "Performing operation with previous expression and an inner expression ";
-                std::cout << "using outter operation: " << unconsumed_operator << ", and inner expression value: " << _stack[_stack.size() - 1].temporary << "\n"; 
+                assembly.push_back(unconsumed_operator + " " + _stack[_stack.size() - 1].temporary); 
             }
             
             // remove expression
@@ -346,12 +361,9 @@ std::string Generator::generate_exp(Node* node) {
             // handle identifier and integer values
             if (!_stack.empty()) {
                 // evalute inner expression
-                std::cout << "evaluating an inner expression\n"; 
 
                 // load first value into accumulator
                 if (_stack[_stack.size() - 1].previous_value.empty()) {
-                    std::cout << "loading first value of an inner expression into the accumulator\n";
-
                     // load first inner expression value into the accumulator
                     assembly.push_back("LOAD " + value);
                 }
@@ -368,7 +380,6 @@ std::string Generator::generate_exp(Node* node) {
             }
             else {
                 // evaluate outter-most expression
-                std::cout << "evaluating outter-most expression\n"; 
 
                 // load first value into the accumulator
                 if (previous_value.empty())
@@ -402,8 +413,6 @@ std::string Generator::generate_exp(Node* node) {
  * ------------------------------------------
 */
 void Generator::generate_if(Node* node) {
-    // <if> -> xcond <exp> <RO> <exp> <stat>
-
     // ==========================
     //   get expression values
     // ==========================
@@ -416,8 +425,6 @@ void Generator::generate_if(Node* node) {
 
     // get second evaluated expression
     std::string b = generate_exp(node->children[2]);
-
-    std::cout << "first expression: " << a << ", relational operator: " << r << ", second expression: " << b << "\n";
 
     // ==========================
     //  create labels & mapping
@@ -458,7 +465,7 @@ void Generator::generate_if(Node* node) {
     }
 
     // store reference to end label and indentation
-    _labels.insert({label_end, node->indentation});    
+    if_labels.insert({label_end, node->indentation});    
 }
 
 
@@ -471,7 +478,74 @@ void Generator::generate_if(Node* node) {
  * ------------------------------------------
 */
 void Generator::generate_loop(Node* node) {
-    // todo:
+    // ==========================
+    //   get expression values
+    // ==========================
+
+    // get first evaluated expression
+    std::string a = generate_exp(node->children[0]);
+
+    // get relational operator
+    std::string r = node->children[1]->tokens[0];
+
+    // get second evaluated expression
+    std::string b = generate_exp(node->children[2]);
+
+    // generate labels for branching
+    std::string label_start = get_label("");
+    std::string label_end = get_label("end");
+
+    // create relational branch mapping
+    std::map<std::string, std::string> operations = {
+        {"<",  "BRNEG"},
+        {">",  "BRPOS"},
+        {">>", "BRZPOS"},
+        {"<<", "BRZNEG"},
+        {"%",  "BRZERO"},
+        {"=",  "BRZERO"}
+    };    
+
+    // relational branch negations
+    std::map<std::string, std::string> negations = {
+        {"%", "="},
+        {"=", "%"},
+        {"<", ">>"},
+        {">", "<<"},
+        {">>", "<"},
+        {"<<", ">"}
+    };
+
+    // determine negated condition
+    std::string negated = operations[negations[r]];
+
+    // ==========================
+    //     generate assembly
+    // ==========================
+    
+    // create loop starting label
+    assembly.push_back(label_start + ": NOOP");
+
+    // load first part of expression into the accumulator
+    assembly.push_back("LOAD " + a);
+    
+    // perform evaluation
+    assembly.push_back("SUB " + b);
+
+    // handle not equal condition
+    if (r == "=") {
+        // create additional loop exiting
+        std::string _label = get_label("");
+        assembly.push_back(operations[r] + " " + _label); 
+        assembly.push_back("BR " + label_end);
+        assembly.push_back(_label + ": NOOP");
+    }
+    else {
+        // break out of loop if negation of condition is true
+        assembly.push_back(negated + " " + label_end); 
+    }
+
+    // store reference to the loop labels and indentation
+    loop_labels.insert({{label_start, label_end}, node->indentation});
 }
 
 
@@ -619,7 +693,7 @@ std::string Generator::get_label(std::string s) {
     std::string output = "";
 
     if (s == "")
-        // normal label
+        // if label
         output = "label" + std::to_string(label_counter);
     else
         // ending label
@@ -715,6 +789,14 @@ void Generator::output(const std::string& prefix) {
     // output each line of generated code to the file (outputs other assembly)
     for (const std::string& line : assembly)
         outputFile << line << std::endl;
+
+    // output success message
+    std::cout << "\n";
+    std::cout << std::string(35, '=');
+    std::cout << "\n";
+    std::cout << " [Status]: assembly file created\n";
+    std::cout << std::string(35, '=');
+    std::cout << "\n\n";
 
     // close the file
     outputFile.close();

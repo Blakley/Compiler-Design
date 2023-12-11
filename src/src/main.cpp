@@ -2,7 +2,9 @@
     Name: Anthony Blakley
     Date: 12/11/2023
     Description: 
-        
+        This program generates assembly code for out input language's abstract syntax tree (AST).
+        It takes input code, processes it, and outputs the corresponding assembly instructions
+        The program includes a lexical analyzer, parser, and code generator components.
 */
 
 # include "../headers/scanner.h"
@@ -30,10 +32,6 @@ int main(int argc, char** argv) {
 
     // begin program top-down parsing
     parser.begin();
-
-    // [tree test] output generated tree
-    tree.traverse(tree.root_node());
-    std::cout << "\n";
 
     // get semantic object
     Semantics semantics(tree.root_node());

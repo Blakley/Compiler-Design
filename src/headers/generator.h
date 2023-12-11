@@ -11,6 +11,7 @@
 # include "tree.h"
 # include <fstream>
 # include <vector>
+# include <tuple>
 # include <set>
 # include <map>
 
@@ -20,8 +21,10 @@ class Generator {
         int temp_counter;                   // counter used to generate unique variables
         int label_counter;                  // counter used to generate unique labels
 
+        std::map<std::string, int> if_labels;  // stores the end labels of if statements
+        std::map<std::pair<std::string, std::string>, int> loop_labels; // stores the end labels of loop statements
+        
         std::set<std::string> locals;       // local variables
-        std::map<std::string, int> _labels; // stores the end labels of conditional statements
         std::vector<std::string> assembly;  // store generated assembly code
 
     public:
