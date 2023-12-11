@@ -12,6 +12,7 @@
 # include <fstream>
 # include <vector>
 # include <set>
+# include <map>
 
 class Generator {
     private:
@@ -20,6 +21,7 @@ class Generator {
         int label_counter;                  // counter used to generate unique labels
 
         std::set<std::string> locals;       // local variables
+        std::map<std::string, int> _labels; // stores the end labels of conditional statements
         std::vector<std::string> assembly;  // store generated assembly code
 
     public:

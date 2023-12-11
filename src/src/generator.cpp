@@ -7,7 +7,6 @@
 
 # include "../headers/generator.h"
 # include <algorithm>
-# include <map>
 
 /**
  * ------------------------------------------
@@ -46,6 +45,28 @@ void Generator::generate(Node* node) {
     // ensure the node is not null
     if (node == nullptr)
         return;
+
+    /**
+     * -------------------------------
+     *   handle generating end label
+     *    for conditional branch
+     * -------------------------------
+    */
+    if (!_labels.empty()) {
+        // check if there are end labels to process
+        auto it = _labels.begin();
+        while (it != _labels.end()) {
+            if (node->indentation <= it->second) {
+                // append label to assembly
+                assembly.push_back(it->first + ": NOOP");
+
+                // remove end label from map
+                it = _labels.erase(it);
+            }
+            else    
+                ++ it;
+        }
+    }    
 
     /**
      * ===============================
@@ -403,8 +424,8 @@ void Generator::generate_if(Node* node) {
     // ==========================
 
     // generate labels for branching
-    std::string label_a = get_label("");
-    std::string label_b = get_label("end");
+    std::string label_start = get_label("");
+    std::string label_end = get_label("end");
 
     // create relational branch mapping
     std::map<std::string, std::string> operations = {
@@ -426,32 +447,22 @@ void Generator::generate_if(Node* node) {
     // perform evaluation
     assembly.push_back("SUB " + b);
     
-    // create label assembly
-    assembly.push_back(operations[r] + " " + label_a);
+    // create label navigation assembly
+    assembly.push_back(operations[r] + " " + label_start); // condition
+    assembly.push_back("BR " + label_end);                 // jump to label if false
+    assembly.push_back(label_start + ": NOOP");            // jump to label if true
 
     /*
         // handle not equal to condition last
         if (operations[r] == "%") {
             // store additional operation, the true evaluation matches the else case which should go to end label
-            // in the assembly for the label_a: just add one NOOP
-            assembly.push_back("BR " + label_b);
+            // in the assembly for the label_start: just add one NOOP
+            assembly.push_back("BR " + label_end);
         }
     */
 
-    /*
-        have a global variable that stores a references to name's of the <if>s end labels ==> std::<vector<std::string, int>> end_labels
-        if !end_labels.empty(), we know we need still need to append an ending conditional label 
-
-        We want to append the end label after we finished traversing the reset of
-           the <if> children, e.g: node->children[i] where i > 2
-
-            how do we know we've finished traversing:
-           ===========================================
-                as we are iterating nodes in the generate() function, we check the end_labels vector 
-                to see if the current node's identation amount, node->identation, is <= any labels identation level in the labels vector
-                if this is the case, we append that end label to the assembly and remove it from the vector 
-    */
-    
+    // store reference to end label and indentation
+    _labels.insert({label_end, node->indentation});    
 }
 
 
@@ -616,7 +627,7 @@ std::string Generator::get_label(std::string s) {
         output = "label" + std::to_string(label_counter);
     else
         // ending label
-        output = "label_end" + std::to_string(label_counter);
+        output = "label" + std::to_string(label_counter - 1) + "_end";
 
     label_counter ++;
     return output;

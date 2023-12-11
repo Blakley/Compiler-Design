@@ -40,7 +40,7 @@ void Parser::begin() {
     parse_program();
 
     // store node identation values
-    identation(tree.root_node(), 0);
+    indentation(tree.root_node(), 0);
 }
 
 
@@ -1070,22 +1070,22 @@ void Parser::retrieve() {
 
 /**
  * ------------------------------------------
- *    Updates the identation for the node
+ *    Updates the indentation for the node
  * 
  * @param node        : current node
  * @param indentation : indentation amount
  * ------------------------------------------
 */
-void Parser::identation(Node* node, int amount) {
+void Parser::indentation(Node* node, int amount) {
     if (node == nullptr)
         return;
 
     // store indentation amount
-    node->identation = amount;
+    node->indentation = amount;
 
     // traverse children in preorder with increased indentation
     for (auto child : node->children)
-        identation(child, amount + 1);
+        indentation(child, amount + 1);
 }
 
 

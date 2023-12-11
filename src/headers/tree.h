@@ -14,7 +14,7 @@
 # include <vector>
 
 struct Node {
-    int identation;                   // identation level of the node
+    int indentation;                  // identation level of the node
     std::string label;                // label for the node, same as nonterminal function name
     std::vector<std::string> tokens;  // store relevant tokens processed in the function
     std::vector<Node*> children;      // children for each nonterminal in a production

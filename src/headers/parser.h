@@ -51,7 +51,7 @@ class Parser {
 
         void begin();               // Parser entry point
         void retrieve();            // Get the next token
-        void identation(Node* node, int i);       // Sets node's identation amount
+        void indentation(Node* node, int i);      // Sets node's indentation amount
         void error(std::string e, std::string v); // Parser error handler 
 };
 

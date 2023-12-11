@@ -172,7 +172,7 @@ void Tree::traverse(Node* node) {
     }
 
     // print identation
-    for (int i = 0; i < node->identation; ++i)
+    for (int i = 0; i < node->indentation; ++i)
         std::cout << "    ";
     
     // print both the label and tokens of the current node on the same line
