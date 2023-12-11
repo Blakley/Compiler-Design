@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/10/2023
+    Date: 12/11/2023
     Description: 
         Header file for code generator class
 */
@@ -42,7 +42,7 @@ class Generator {
         void generate_xclose();             // handles the closing assembly code
 
         void optimize(std::vector<std::string>& t); // optimize expression operators
-        void output(const std::string& fileName);  // outputs generated code to a file
+        void output(const std::string& fileName);   // outputs generated code to a file
 };
 
 #endif  // GENERATOR_H  

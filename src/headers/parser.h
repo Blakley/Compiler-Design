@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/09/2023
+    Date: 12/11/2023
     Description: 
         Header file for recursive descent top-down parser
 */
@@ -51,7 +51,8 @@ class Parser {
 
         void begin();               // Parser entry point
         void retrieve();            // Get the next token
-        void error(std::string e, std::string v);   // Parser error handler 
+        void identation(Node* node, int i);       // Sets node's identation amount
+        void error(std::string e, std::string v); // Parser error handler 
 };
 
 # endif // PARSER_H

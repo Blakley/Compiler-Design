@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/09/2023
+    Date: 12/11/2023
     Description: 
         Parser function declarations
 */
@@ -38,6 +38,9 @@ Parser::~Parser() {
 void Parser::begin() {
     // begin parsing the input program
     parse_program();
+
+    // store node identation values
+    identation(tree.root_node(), 0);
 }
 
 
@@ -1062,6 +1065,27 @@ void Parser::retrieve() {
         _tokens results = scanner.scanner();
         _token = std::get<1>(results);
     }
+}
+
+
+/**
+ * ------------------------------------------
+ *    Updates the identation for the node
+ * 
+ * @param node        : current node
+ * @param indentation : indentation amount
+ * ------------------------------------------
+*/
+void Parser::identation(Node* node, int amount) {
+    if (node == nullptr)
+        return;
+
+    // store indentation amount
+    node->identation = amount;
+
+    // traverse children in preorder with increased indentation
+    for (auto child : node->children)
+        identation(child, amount + 1);
 }
 
 

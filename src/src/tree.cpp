@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 11/23/2023
+    Date: 12/11/2023
     Description: 
         Tree function declarations
 */
@@ -155,11 +155,10 @@ size_t Tree::tree_size() const {
  * ------------------------------------------
  *         Preorder tree traversal
  * 
- * @param node        : current node
- * @param indentation : indentation amount
+ * @param node : current node
  * ------------------------------------------
 */
-void Tree::traverse(Node* node, int indentation) {
+void Tree::traverse(Node* node) {
     if (node == nullptr) {
         return;
     }
@@ -173,7 +172,7 @@ void Tree::traverse(Node* node, int indentation) {
     }
 
     // print identation
-    for (int i = 0; i < indentation; ++i)
+    for (int i = 0; i < node->identation; ++i)
         std::cout << "    ";
     
     // print both the label and tokens of the current node on the same line
@@ -184,7 +183,7 @@ void Tree::traverse(Node* node, int indentation) {
     }
     std::cout << "\n";
 
-    // traverse children in preorder with increased indentation
+    // traverse children in preorder
     for (auto child : node->children)
-        traverse(child, indentation + 1);
+        traverse(child);
 }

@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/03/2023
+    Date: 12/11/2023
     Description: 
         Header file for parse tree output
 */
@@ -14,6 +14,7 @@
 # include <vector>
 
 struct Node {
+    int identation;                   // identation level of the node
     std::string label;                // label for the node, same as nonterminal function name
     std::vector<std::string> tokens;  // store relevant tokens processed in the function
     std::vector<Node*> children;      // children for each nonterminal in a production
@@ -38,7 +39,7 @@ class Tree {
         void new_node(const std::string& label);   // create a new node
         void new_child(Node* parent, Node* child); // add a child to a node
         void new_token(Node* node, token* t);      // add a token to a node
-        void traverse(Node* node, int i);          // inorder traversal & printing function
+        void traverse(Node* node);                 // inorder traversal & printing function
 
         Node* root_node() const;     // getter for root node
         Node* previous_node() const; // getter for previous node

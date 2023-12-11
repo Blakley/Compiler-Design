@@ -383,11 +383,12 @@ std::string Generator::generate_exp(Node* node) {
 void Generator::generate_if(Node* node) {
     // <if> -> xcond <exp> <RO> <exp> <stat>
 
+    // ==========================
+    //   get expression values
+    // ==========================
+
     // get first evaluated expression
     std::string a = generate_exp(node->children[0]);
-
-    // load first part of expression into the accumulator
-    assembly.push_back("LOAD " + a);
 
     // get relational operator
     std::string r = node->children[1]->tokens[0];
@@ -397,36 +398,60 @@ void Generator::generate_if(Node* node) {
 
     std::cout << "first expression: " << a << ", relational operator: " << r << ", second expression: " << b << "\n";
 
+    // ==========================
+    //  create labels & mapping
+    // ==========================
+
     // generate labels for branching
     std::string label_a = get_label("");
     std::string label_b = get_label("end");
 
-    // 
+    // create relational branch mapping
+    std::map<std::string, std::string> operations = {
+        {"<",  "BRNEG"},
+        {">",  "BRPOS"},
+        {">>", "BRZPOS"},
+        {"<<", "BRZNEG"},
+        {"%",  "BRZERO"},
+        {"=",  "BRZERO"}
+    };
 
+    // ==========================
+    //     generate assembly
+    // ==========================
+
+    // load first part of expression into the accumulator
+    assembly.push_back("LOAD " + a);
+    
+    // perform evaluation
+    assembly.push_back("SUB " + b);
+    
+    // create label assembly
+    assembly.push_back(operations[r] + " " + label_a);
 
     /*
-
-        once we encounter if, we need to generate label for if the statement is both true and false
-        before we evalute if the condition is true, we need to generate the code for both and only 
-        then jump to the appropriate branch
-
-        if condition is true:
-            
-            navigate to the <stat> child of the <if> node
-            perform/(generate assembly) the necessary operations on the <stat> children,
-            create a list of these nodes so we can skip traversing them in the generate function
-
-        if condition is false:
-
-            jump to label_false which should continue the execution of the program as normal
-
-
-        alternative method for handling <if> :
-            generate all code as normal, then iterate tree again, this time
-            finding all conditional nodes, <if> and inserting conditional assembly & labels
-            whereever necessary
+        // handle not equal to condition last
+        if (operations[r] == "%") {
+            // store additional operation, the true evaluation matches the else case which should go to end label
+            // in the assembly for the label_a: just add one NOOP
+            assembly.push_back("BR " + label_b);
+        }
     */
 
+    /*
+        have a global variable that stores a references to name's of the <if>s end labels ==> std::<vector<std::string, int>> end_labels
+        if !end_labels.empty(), we know we need still need to append an ending conditional label 
+
+        We want to append the end label after we finished traversing the reset of
+           the <if> children, e.g: node->children[i] where i > 2
+
+            how do we know we've finished traversing:
+           ===========================================
+                as we are iterating nodes in the generate() function, we check the end_labels vector 
+                to see if the current node's identation amount, node->identation, is <= any labels identation level in the labels vector
+                if this is the case, we append that end label to the assembly and remove it from the vector 
+    */
+    
 }
 
 

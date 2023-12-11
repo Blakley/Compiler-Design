@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/10/2023
+    Date: 12/11/2023
     Description: 
         
 */
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     parser.begin();
 
     // [tree test] output generated tree
-    tree.traverse(tree.root_node(), 0);
+    tree.traverse(tree.root_node());
     std::cout << "\n";
 
     // get semantic object
