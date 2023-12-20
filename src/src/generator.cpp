@@ -1,6 +1,6 @@
 /*
     Name: Anthony Blakley
-    Date: 12/11/2023
+    Date: 12/20/2023
     Description: 
         Generator function declarations
 */
@@ -15,7 +15,7 @@
  * @param r : root node of AST
  * ------------------------------------------
 */
-Generator::Generator(Node* root) : root(root), temp_counter(0), label_counter(0) {    
+Generator::Generator(Node* root) : root(root), label_counter(0), stack_counter(0) {    
     // start generating assembly
     generate(root);
 
@@ -243,7 +243,8 @@ void Generator::generate_assign(Node* node) {
  *          current <exp> node
  * 
  * @param node : current node
- * @return     : temporary variable
+ * @return     : updated _stack storage value
+ *               or a single value 
  * ------------------------------------------
 */
 std::string Generator::generate_exp(Node* node) {
@@ -257,150 +258,147 @@ std::string Generator::generate_exp(Node* node) {
     //     setup variables
     //=========================
 
-    // create new temporary variable
-    std::string temporary = get_temp();
-
-    // stores the unconsumed operator
-    std::string unconsumed_operator = "";
-
-    // stores the previous value
-    std::string previous_value = "";
-
-    /*
-        create structure to hold stack elements
-        useful for nested expressions ( <exp> )
-    */
-    struct stack_data {
-        // stores the inner expression's unconsumed operator
-        std::string unconsumed_operator = "";
-
-        // stores the previous inner value
-        std::string previous_value = "";
-
-        // stores a temporary variable for the inner expressions
-        std::string temporary = ""; 
-    };
+    // create initial temporary variable
+    if (locals.empty())
+        locals.insert("stack_T");
 
     // stack to handle nested expressions    
     std::vector<stack_data> _stack;
 
+    // variables for outter-most expression, outside parenthesis
+    std::string outter_previous = "";
+    std::string outter_unconsumed = "";
+
     // ========================
     //   evaluate expression
     //=========================
+
+    /*
+        xout << 2 * ( 5 + 10 ) ;
+        xout << 2 * ( 5 + ( 2 * 5 ) ) ;
+        xout << 2 * ( 4 + ( 2 * 5 ) ) + 2 ;
+        xout << 2 * ( 5 + 10 ) / ( 1 + 0 ) ;
+        xout << 2 * ( 4 + 10 ) / ( 1 + 1 ) + 16 ;
+        xout << 2 * ( 5 + ( 2 * 5 ) ) / ( 1 + 1 ) + 15 ;
+    */
 
     // optimize expression
     optimize(node->tokens);
 
     // evaluate expression & generate required assembly
     for (auto value : node->tokens) {
+        if (value == "(") {
+            // store current expression onto stack
+            shift(_stack, 0);
+            assembly.push_back("PUSH");
+            assembly.push_back("STACKW 0");
+            
+            // create new stack data structure
+            stack_data data;
+            data.index = stack_counter;
+            stack_counter ++;
 
-        // determine expression value
-        if (value == "~") {
-            // negate accumulator
+            // add data to stack
+            _stack.push_back(data);
+        }
+        else if (value == ")") {
+            // 1) store evaluated expression in stack temporary variable
+            assembly.push_back("STORE stack_T");
+            
+            if (_stack.size() > 1) {
+                // 2a) move previous expression into accumulator
+                assembly.push_back("STACKR " + std::to_string(_stack[_stack.size() - 2].index - 1));
+
+                // 3a) perform operation with accumulator and stack temporary variable
+                assembly.push_back(_stack[_stack.size() - 2].unconsumed + " stack_T");
+
+                // 4a) store expression in appropriate stack variable
+                assembly.push_back("STACKW " + std::to_string(_stack[_stack.size() - 2].index - 1));
+            }
+            else {
+                // 2b) move original value, TOS, into accumulator
+                assembly.push_back("STACKR 0");
+            
+                // 3b) perform operation with accumulator and stack temporary variable
+                assembly.push_back(outter_unconsumed + " stack_T");
+
+                // 4b) store evaluted output, accumulator, in stack temporary variable
+                assembly.push_back("STORE stack_T");
+            }
+            
+            // remove evaluated stack_data structure
+            shift(_stack, 1);
+            _stack.pop_back();
+            assembly.push_back("POP");
+        }
+        else if (value == "~") {
+            // handle negation operator, negate accumulator
             assembly.push_back("MULT -1"); 
         }
         else if (value == "+" || value == "-" || value == "*" || value == "/") {
-            
+            // handle operators
             if (!_stack.empty()) {
                 // operator is an inner expression operator
-                _stack[_stack.size() - 1].unconsumed_operator = 
+                _stack[_stack.size() - 1].unconsumed = 
                     (value == "+") ? "ADD" :
                     (value == "-") ? "SUB" :
                     (value == "*") ? "MULT" : "DIV";
             }
             else {
                 // operator is for outter expression
-                unconsumed_operator =  
+                outter_unconsumed =  
                     (value == "+") ? "ADD" :
                     (value == "-") ? "SUB" :
                     (value == "*") ? "MULT" : "DIV";
             }
-        }
-        else if (value == "(") {
-            // start of new inner expression
-            
-            // store the current expression
-            if (!_stack.empty())  
-                // store in outter temporary variable
-                assembly.push_back("STORE " + _stack[_stack.size() - 1].temporary);
-            else
-                // store expression in outter-most temporary variable
-                assembly.push_back("STORE " + temporary);
-                
-            // create new temporary variable for inner expression
-            struct stack_data data;
-            data.temporary = get_temp();
-            _stack.push_back(data);
-        }
-        else if (value == ")") {
-            // end of an inner expression            
-
-            // store result of inner expression it its corresponding temporary variable
-            assembly.push_back("STORE " + _stack[_stack.size() - 1].temporary);
-
-            // load original temporary variable back into accumulator
-            if (_stack.size() > 1) {
-                // load previous outter expression's temporary variable into accumulator
-                assembly.push_back("LOAD " + _stack[_stack.size() - 2].temporary);
-
-                // perform operation with previous expression and evaluated expression
-                assembly.push_back(_stack[_stack.size() - 2].unconsumed_operator + " " + _stack[_stack.size() - 1].temporary);
-            }
-            else {
-                // load original temporary variable back into accumulator
-                assembly.push_back("LOAD " + temporary);
-
-                // perform operation with previous expression (in accumulator) and evaluated expression
-                assembly.push_back(unconsumed_operator + " " + _stack[_stack.size() - 1].temporary); 
-            }
-            
-            // remove expression
-            _stack.pop_back();
-        }
+        } 
         else {
             // handle identifier and integer values
             if (!_stack.empty()) {
-                // evalute inner expression
+                // evaluate inner expression
 
-                // load first value into accumulator
-                if (_stack[_stack.size() - 1].previous_value.empty()) {
+                // load first value into the accumulator
+                if (_stack[_stack.size() - 1].previus_value.empty()) {
                     // load first inner expression value into the accumulator
                     assembly.push_back("LOAD " + value);
                 }
                 else {
                     // apply the inner expression's unconsumed operator to the current value
-                    assembly.push_back(_stack[_stack.size() - 1].unconsumed_operator + " " + value);
+                    assembly.push_back(_stack[_stack.size() - 1].unconsumed + " " + value);
 
-                    // reset inner_unconsumed operator
-                    _stack[_stack.size() - 1].unconsumed_operator = "";
+                    // reset inner expressoin's unconsumed operator
+                    _stack[_stack.size() - 1].unconsumed = "";
                 }
 
-                // update previous_inner
-                _stack[_stack.size() - 1].previous_value = value;
+                // update previous inner value
+                _stack[_stack.size() - 1].previus_value = value;
             }
             else {
                 // evaluate outter-most expression
 
                 // load first value into the accumulator
-                if (previous_value.empty())
+                if (outter_previous.empty())
                     assembly.push_back("LOAD " + value); 
                 else {
                     // apply the unconsumed operator to the current value
-                    assembly.push_back(unconsumed_operator + " " + value);
+                    assembly.push_back(outter_unconsumed + " " + value);
 
                     // reset the unconsumed operator
-                    unconsumed_operator = "";
+                    outter_unconsumed = "";
                 }
 
                 // update previous_value
-                previous_value = value;  
+                outter_previous = value;  
             }
         }
     }
 
-    // store complete evaluated expression, from accumulator, in temporary variable 
-    assembly.push_back("STORE " + temporary);
-    return temporary;
+    // update final stack temporary variable if necessary
+    if (assembly[assembly.size() - 1] != "STORE stack_T")
+        assembly.push_back("STORE stack_T");
+
+    // return evaluted expression
+    return "stack_T";
 }
 
 
@@ -556,6 +554,26 @@ void Generator::generate_loop(Node* node) {
  * ------------------------------------------
 */
 void Generator::generate_xclose() {   
+    // push instruction counter
+    int _push = 0;
+    int _pop = 0;
+
+    // count the number of PUSH instructions
+    for (const std::string& line : assembly) {
+        if (line.find("PUSH") != std::string::npos)
+            _push ++;
+
+        if (line.find("POP") != std::string::npos)
+            _pop ++;
+    }
+    
+    // update PUSH instructions that need a corresponding POP
+    _push -= _pop;
+    
+    // add POP instructions based on PUSH count before STOP
+    for (int i = 0; i < _push; ++i)
+        assembly.push_back("POP");
+
     // append STOP instruction
     assembly.push_back("STOP");
 
@@ -662,26 +680,6 @@ std::string Generator::identify(Node* node, int option) {
 
 /**
  * ------------------------------------------
- *    Returns a unique temporary variable   
- * 
- *  @return : unique name
- * ------------------------------------------
-*/
-std::string Generator::get_temp() {
-    // generate name based on temp counter
-    std::string output = "";
-    output = "temp" + std::to_string(temp_counter);
-    temp_counter ++;
-
-    // add temporary value to locals
-    locals.insert(output);
-
-    return output;
-}
-
-
-/**
- * ------------------------------------------
  *       Returns a unique label name  
  * 
  *  @param  : label type identifier 
@@ -701,6 +699,24 @@ std::string Generator::get_label(std::string s) {
 
     label_counter ++;
     return output;
+}
+
+
+/**
+ * ------------------------------------------
+ *          Shifts stack indices
+ * 
+ *  @param  _stack : current stack structure
+ *  @param  i      : instruction, push or pop
+ * ------------------------------------------
+ */
+void Generator::shift(std::vector<stack_data>& _stack, int i) {
+    for (auto& element : _stack) {
+        if (i == 0)
+            element.index ++; // update PUSH
+        else
+            element.index --; // update POP  
+    }
 }
 
 
