@@ -247,6 +247,7 @@ void Generator::generate_assign(Node* node) {
  *               or a single value 
  * ------------------------------------------
 */
+
 std::string Generator::generate_exp(Node* node) {
     // case 1: single value
     if (node->tokens.size() == 1)
@@ -273,15 +274,14 @@ std::string Generator::generate_exp(Node* node) {
     //   evaluate expression
     //=========================
 
-    /*
-        xout << 2 * ( 5 + 10 ) ;
-        xout << 2 * ( 5 + ( 2 * 5 ) ) ;
-        xout << 2 * ( 4 + ( 2 * 5 ) ) + 2 ;
-        xout << 2 * ( 5 + 10 ) / ( 1 + 0 ) ;
-        xout << 2 * ( 4 + 10 ) / ( 1 + 1 ) + 16 ;
-        xout << 2 * ( 5 + ( 2 * 5 ) ) / ( 1 + 1 ) + 15 ;
-    */
-
+    // expected outputs for below: 30
+    // xout << 2 * ( 5 + 10 ) ;
+    // xout << 2 * ( 5 + ( 2 * 5 ) ) ;
+    // xout << 2 * ( 4 + ( 2 * 5 ) ) + 2 ;
+    // xout << 2 * ( 5 + 10 ) / ( 1 + 0 ) ;
+    // xout << 2 * ( 4 + 10 ) / ( 1 + 1 ) + 16 ;
+    // xout << 2 * ( 5 + ( 2 * 5 ) ) / ( 1 + 1 ) + 15 ;
+    
     // optimize expression
     optimize(node->tokens);
 
