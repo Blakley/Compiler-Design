@@ -1,5 +1,0 @@
-xopen 
-    xcond [ 1 % 2 ] 
-        xcond [ 1 = 2 ] 
-            xout << 1 ; 
-xclose

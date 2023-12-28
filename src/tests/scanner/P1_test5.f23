@@ -1,7 +1,0 @@
-xfunc{
-xvar=12;
-xstring;
-$time to do something$
-xout
-xexit
-}

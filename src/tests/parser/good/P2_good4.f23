@@ -1,4 +1,0 @@
-xdata x1: 1 ;
-xopen 
-    xout << x1 + 2 - - - 3 * 4 + ~ 22 / ( 12 + 12 ) ; 
-xclose

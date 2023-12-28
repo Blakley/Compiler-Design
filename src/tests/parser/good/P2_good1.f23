@@ -1,3 +1,0 @@
-xopen $shortestProgramPrint1$ 
-	xout << 1;
-xclose

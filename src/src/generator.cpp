@@ -241,13 +241,13 @@ void Generator::generate_assign(Node* node) {
  * ------------------------------------------
  *     Generates assembly code for the 
  *          current <exp> node
+ *  uses the stack for temporary storage
  * 
  * @param node : current node
  * @return     : updated _stack storage value
  *               or a single value 
  * ------------------------------------------
 */
-
 std::string Generator::generate_exp(Node* node) {
     // case 1: single value
     if (node->tokens.size() == 1)
