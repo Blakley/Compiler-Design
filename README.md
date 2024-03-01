@@ -1,5 +1,3 @@
-# P3
-
 This project implements a top-down parser for a specific language, 
 generating an Abstract Syntax Tree (AST) from the input source code. 
 Additionally, it performs static semantics checks on the AST, ensuring 
